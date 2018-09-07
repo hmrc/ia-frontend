@@ -1,3 +1,4 @@
 # microservice specific routes
 
-GET        /hello-world             uk.gov.hmrc.iafrontend.controllers.HelloWorld.helloWorld
+GET        /upload                 uk.gov.hmrc.iafrontend.controllers.IaUploadController.getUploadPage()
+POST       /upload                 uk.gov.hmrc.iafrontend.controllers.IaUploadController.submitUploadPage()

@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.iafrontend.controllers
+package uk.gov.hmrc.iafrontend.testsupport
 
-import javax.inject.{Inject, Singleton}
 
-import play.api.mvc._
+import org.scalatest._
+import org.scalatest.concurrent.{ Eventually, IntegrationPatience, ScalaFutures }
 
-import scala.concurrent.Future
-import play.api.i18n.{I18nSupport, MessagesApi}
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
-import uk.gov.hmrc.iafrontend.config.AppConfig
-import uk.gov.hmrc.iafrontend.views
+object RichMatchers extends RichMatchers
 
-@Singleton
-class HelloWorld @Inject()(val messagesApi: MessagesApi, implicit val appConfig: AppConfig) extends FrontendController with I18nSupport {
-
-  val helloWorld = Action.async { implicit request =>
-    Future.successful(Ok(views.html.hello_world()))
-  }
-
-}
+trait RichMatchers
+  extends Matchers
+    with DiagrammedAssertions
+    with TryValues
+    with EitherValues
+    with OptionValues
+    with AppendedClues
+    with ScalaFutures
+    with StreamlinedXml
+    with Inside
+    with Eventually
+    with IntegrationPatience
