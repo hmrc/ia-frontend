@@ -20,11 +20,14 @@ import uk.gov.hmrc.iafrontend.testsupport.{PageElements, ViewSpec}
 import uk.gov.hmrc.iafrontend.views.html.upload
 
 
-class UploadPageSpec extends ViewSpec{
+class UploadPageSpec extends ViewSpec {
 
-  "view spec" in new PageElements {
-    val html = upload()(fakeRequest, messages, appConfig)
 
-    headerTitle shouldBe "ia-frontend" withClue "the correct banner title"
-  }
+   "UploadPage" should {
+     "display the correct elements " in  new PageElements{
+       val html = upload()(fakeRequest, messages, appConfig)
+
+       headerTitle shouldBe "ia-frontend" withClue "the correct banner title"
+     }
+   }
 }

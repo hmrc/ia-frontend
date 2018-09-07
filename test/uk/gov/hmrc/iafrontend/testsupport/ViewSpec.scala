@@ -26,9 +26,8 @@ import play.filters.csrf.CSRF.Token
 import play.filters.csrf.{CSRFConfigProvider, CSRFFilter}
 import uk.gov.hmrc.iafrontend.config.AppConfig
 trait ViewSpec
-  extends FreeSpec
+  extends Spec
     with GuiceOneAppPerSuite
-    with RichMatchers
 {
 
   def injector: Injector = app.injector

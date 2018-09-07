@@ -18,7 +18,7 @@ object AppDependencies {
     "org.pegdown" % "pegdown" % "1.6.0" % scope,
     "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % scope,
     "org.jsoup" % "jsoup" % "1.10.2" % scope,
-
+    "org.mockito" % "mockito-all" % "1.10.19" % scope,
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
   )
 

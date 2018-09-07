@@ -61,4 +61,4 @@ class IaUploadControllerSpec extends Spec with WithFakeApplication {
     }
 */
   }
-}
+
