@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,11 +12,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@import uk.gov.hmrc.iafrontend.config.AppConfig
-@()(implicit request: Request[_], messages: Messages, appConfig: AppConfig)
+package uk.gov.hmrc.iafrontend.testsupport
 
-@main_template(title = "Hello from ia-frontend", bodyClasses = None) {
-    <h1>Hello from ia-frontend !</h1>
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import play.twirl.api.Html
+
+trait PageElements {
+  //see https://jsoup.org/cookbook/extracting-data/selector-syntax
+  //for advanced selections
+
+  /**
+    * Html representig rendered view.
+    * Override is as a `val`
+    */
+  def html: Html
+
+  protected lazy val document: Document = Jsoup.parse(html.toString())
+
+  def headerTitle: String = {
+    val nav = document.getElementById("proposition-menu")
+    val span = nav.children.first
+    span.text
+  }
+
 }

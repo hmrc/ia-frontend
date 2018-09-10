@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.iafrontend.controllers
+package uk.gov.hmrc.iafrontend.testsupport
 
-import javax.inject.{Inject, Singleton}
+import org.scalatest._
+import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
+import org.scalatest.mockito.MockitoSugar
+import uk.gov.hmrc.play.test.UnitSpec
 
-import play.api.mvc._
-
-import scala.concurrent.Future
-import play.api.i18n.{I18nSupport, MessagesApi}
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
-import uk.gov.hmrc.iafrontend.config.AppConfig
-import uk.gov.hmrc.iafrontend.views
-
-@Singleton
-class HelloWorld @Inject()(val messagesApi: MessagesApi, implicit val appConfig: AppConfig) extends FrontendController with I18nSupport {
-
-  val helloWorld = Action.async { implicit request =>
-    Future.successful(Ok(views.html.hello_world()))
-  }
-
+trait Spec extends Matchers
+  with DiagrammedAssertions
+  with TryValues
+  with EitherValues
+  with OptionValues
+  with AppendedClues
+  with ScalaFutures
+  with StreamlinedXml
+  with Inside
+  with Eventually
+  with MockitoSugar
+  with UnitSpec
+  with IntegrationPatience{
+  implicit lazy val ec = scala.concurrent.ExecutionContext.Implicits.global
 }

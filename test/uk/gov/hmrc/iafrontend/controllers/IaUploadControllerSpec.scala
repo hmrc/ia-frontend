@@ -21,31 +21,44 @@ import play.api.i18n.{DefaultLangs, DefaultMessagesApi}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.{Configuration, Environment}
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 import uk.gov.hmrc.iafrontend.config.AppConfig
-
-class HelloWorldControllerSpec extends UnitSpec with WithFakeApplication {
-  val fakeRequest = FakeRequest("GET", "/")
-
+import uk.gov.hmrc.iafrontend.testsupport.Spec
+import uk.gov.hmrc.play.test.WithFakeApplication
+class IaUploadControllerSpec extends Spec with WithFakeApplication {
+  val fakeRequestGet = FakeRequest("GET", "/")
+  val fakeRequestPostForm = FakeRequest("POST", "/")
   val env = Environment.simple()
   val configuration = Configuration.load(env)
 
   val messageApi = new DefaultMessagesApi(env, configuration, new DefaultLangs(configuration))
   val appConfig = new AppConfig(configuration, env)
 
-  val controller = new HelloWorld(messageApi, appConfig)
+  val controller = new IaUploadController(messageApi, appConfig)
 
-  "GET /" should {
+  "GET /upload " should {
     "return 200" in {
-      val result = controller.helloWorld(fakeRequest)
+      val result = controller.getUploadPage()(fakeRequestGet)
       status(result) shouldBe Status.OK
     }
 
     "return HTML" in {
-      val result = controller.helloWorld(fakeRequest)
+      val result = controller.getUploadPage()(fakeRequestGet)
       contentType(result) shouldBe Some("text/html")
       charset(result) shouldBe Some("utf-8")
     }
 
   }
-}
+
+  /*("Post /upload " should {
+    "return 200" in {
+      val result = controller.submitUploadPage()(fakeRequestPostForm)
+
+    }
+
+    "return HTML" in {
+      val result = controller.submitUploadPage()(fakeRequestPostForm).futureValue
+
+    }
+*/
+  }
+
