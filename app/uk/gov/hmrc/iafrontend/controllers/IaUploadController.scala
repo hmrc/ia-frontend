@@ -16,26 +16,30 @@
 
 package uk.gov.hmrc.iafrontend.controllers
 
+
 import javax.inject.{Inject, Singleton}
-
-import play.api.mvc._
-
-import scala.concurrent.Future
 import play.api.i18n.{I18nSupport, MessagesApi}
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import play.api.mvc._
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.config.AppConfig
+import uk.gov.hmrc.iafrontend.streams.CSVStreamer
 import uk.gov.hmrc.iafrontend.views
+import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
-class IaUploadController @Inject()(val messagesApi: MessagesApi, implicit val appConfig: AppConfig) extends FrontendController with I18nSupport {
+class IaUploadController @Inject()(stream: CSVStreamer, val messagesApi: MessagesApi, implicit val appConfig: AppConfig) extends FrontendController with I18nSupport {
+
+  //we need this for the stream bodyParser
+  implicit  val Hc = HeaderCarrier()
 
   def getUploadPage() = Action.async { implicit request =>
     Future.successful(Ok(views.html.upload()))
   }
 
-  def submitUploadPage() = Action(parse.multipartFormData) { implicit request =>
-    request.body.file("file").fold(Ok(views.html.upload()))(file =>{
-      Ok(views.html.upload())
-    })
+  def submitUploadPage() = Action.async(stream.bodyParser) { implicit request =>
+    stream.upload(request.body).map(noOfRecords => Ok(noOfRecords.toString))
   }
 }

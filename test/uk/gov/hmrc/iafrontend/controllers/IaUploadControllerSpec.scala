@@ -16,24 +16,38 @@
 
 package uk.gov.hmrc.iafrontend.controllers
 
+import javax.security.auth.login.AppConfigurationEntry
+import play.api.Mode.Mode
 import play.api.http.Status
 import play.api.i18n.{DefaultLangs, DefaultMessagesApi}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.iafrontend.config.AppConfig
+import uk.gov.hmrc.iafrontend.streams.CSVStreamer
 import uk.gov.hmrc.iafrontend.testsupport.Spec
+import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.test.WithFakeApplication
+import play.api.Mode.Dev
 class IaUploadControllerSpec extends Spec with WithFakeApplication {
   val fakeRequestGet = FakeRequest("GET", "/")
   val fakeRequestPostForm = FakeRequest("POST", "/")
-  val env = Environment.simple()
-  val configuration = Configuration.load(env)
+
+  val env: Environment = Environment.simple()
+  val configuration: Configuration = Configuration.load(env)
 
   val messageApi = new DefaultMessagesApi(env, configuration, new DefaultLangs(configuration))
-  val appConfig = new AppConfig(configuration, env)
 
-  val controller = new IaUploadController(messageApi, appConfig)
+  class testServiceConfig extends ServicesConfig{
+    override protected def mode: Mode = Dev
+
+    override protected def runModeConfiguration: Configuration = configuration
+  }
+
+
+  val appConfig = new AppConfig(new testServiceConfig())
+  val mockStreamer = mock[CSVStreamer]
+  val controller = new IaUploadController(mockStreamer, messageApi, appConfig)
 
   "GET /upload " should {
     "return 200" in {
