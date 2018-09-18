@@ -16,46 +16,35 @@
 
 package uk.gov.hmrc.iafrontend.controllers
 
-import javax.security.auth.login.AppConfigurationEntry
-import play.api.Mode.Mode
 import play.api.http.Status
-import play.api.i18n.{DefaultLangs, DefaultMessagesApi}
-import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.{Configuration, Environment}
-import uk.gov.hmrc.iafrontend.config.AppConfig
+import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
+import uk.gov.hmrc.auth.core.{AuthProviders, Enrolment, Enrolments}
+import uk.gov.hmrc.auth.core.retrieve.Retrievals
+import uk.gov.hmrc.iafrontend.{TestHelper, authMock}
+import uk.gov.hmrc.iafrontend.auth.StrideAuthenticatedAction
 import uk.gov.hmrc.iafrontend.streams.CSVStreamer
 import uk.gov.hmrc.iafrontend.testsupport.Spec
-import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.test.WithFakeApplication
-import play.api.Mode.Dev
-class IaUploadControllerSpec extends Spec with WithFakeApplication {
-  val fakeRequestGet = FakeRequest("GET", "/")
-  val fakeRequestPostForm = FakeRequest("POST", "/")
 
-  val env: Environment = Environment.simple()
-  val configuration: Configuration = Configuration.load(env)
+import scala.concurrent.Future
 
-  val messageApi = new DefaultMessagesApi(env, configuration, new DefaultLangs(configuration))
+class IaUploadControllerSpec extends Spec with WithFakeApplication with TestHelper with authMock{
 
-  class testServiceConfig extends ServicesConfig{
-    override protected def mode: Mode = Dev
-
-    override protected def runModeConfiguration: Configuration = configuration
-  }
-
-
-  val appConfig = new AppConfig(new testServiceConfig())
   val mockStreamer = mock[CSVStreamer]
-  val controller = new IaUploadController(mockStreamer, messageApi, appConfig)
+  val mockStrideAuth = mock[StrideAuthenticatedAction]
+  val testAuthRequest = new StrideAuthenticatedAction(new testAuth,appConfig)
+  val controller = new IaUploadController(mockStreamer,testAuthRequest, messageApi, appConfig)
 
   "GET /upload " should {
     "return 200" in {
+      mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
       val result = controller.getUploadPage()(fakeRequestGet)
       status(result) shouldBe Status.OK
     }
 
     "return HTML" in {
+      mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
       val result = controller.getUploadPage()(fakeRequestGet)
       contentType(result) shouldBe Some("text/html")
       charset(result) shouldBe Some("utf-8")
@@ -74,5 +63,5 @@ class IaUploadControllerSpec extends Spec with WithFakeApplication {
 
     }
 */
-  }
+}
 

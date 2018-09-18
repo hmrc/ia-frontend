@@ -17,19 +17,34 @@
 package uk.gov.hmrc.iafrontend.config
 
 import javax.inject.{Inject, Singleton}
+import play.api.Configuration
 import uk.gov.hmrc.play.config.ServicesConfig
 
 @Singleton
-class AppConfig @Inject()(servicesConfig: ServicesConfig)  {
+class AppConfig @Inject()(servicesConfig: ServicesConfig,  config: Configuration)  {
+
+
+  //todo perhaps move most of this to the config class
+  final lazy val defaultOriginStride: String = {
+    config
+      .getString("sosOrigin")
+      .orElse(config.getString("appName"))
+      .getOrElse("undefined")
+  }
+
+  def origin: String = defaultOriginStride
+  val strideLoginUrl = servicesConfig.baseUrl("stride-auth-frontend") + "/stride/sign-in"
+  val strideRoles = config.getStringSeq("stride.roles").getOrElse(throw new RuntimeException("there are no stride roles in your config!"))
+
 
   private def loadConfig(key: String) = servicesConfig.getString(key)
-
   private val contactHost = servicesConfig.getString("contact-frontend.host")
   private val contactFormServiceIdentifier = "MyService"
 
   lazy val assetsPrefix = loadConfig(s"assets.url") + loadConfig(s"assets.version")
   lazy val analyticsToken = loadConfig(s"google-analytics.token")
   lazy val analyticsHost = loadConfig(s"google-analytics.host")
+
   lazy val reportAProblemPartialUrl = s"$contactHost/contact/problem_reports_ajax?service=$contactFormServiceIdentifier"
   lazy val reportAProblemNonJSUrl = s"$contactHost/contact/problem_reports_nonjs?service=$contactFormServiceIdentifier"
 }

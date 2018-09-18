@@ -17,6 +17,7 @@
 import com.google.inject.{AbstractModule, Provides, Singleton}
 import play.api.Mode.Mode
 import play.api.{Configuration, Environment}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.config.ServicesConfig
 
 class Module extends AbstractModule {
@@ -27,6 +28,11 @@ class Module extends AbstractModule {
   def serviceConfig(environment: Environment, configuration: Configuration): ServicesConfig = new ServicesConfig {
     def mode: Mode = environment.mode
     def runModeConfiguration: Configuration = configuration
+  }
+  @Provides
+  @Singleton
+  def authorisedFunctions(ac: AuthConnector): AuthorisedFunctions = new AuthorisedFunctions {
+    override def authConnector: AuthConnector = ac
   }
 
   override def configure(): Unit = ()

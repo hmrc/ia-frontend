@@ -21,6 +21,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.iafrontend.auth.StrideAuthenticatedAction
 import uk.gov.hmrc.iafrontend.config.AppConfig
 import uk.gov.hmrc.iafrontend.streams.CSVStreamer
 import uk.gov.hmrc.iafrontend.views
@@ -30,16 +31,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class IaUploadController @Inject()(stream: CSVStreamer, val messagesApi: MessagesApi, implicit val appConfig: AppConfig) extends FrontendController with I18nSupport {
+class IaUploadController @Inject()(stream: CSVStreamer,
+                                   strideAuth: StrideAuthenticatedAction,
+                                   val messagesApi: MessagesApi,
+                                   implicit val appConfig: AppConfig) extends FrontendController with I18nSupport {
 
   //we need this for the stream bodyParser
   implicit  val Hc = HeaderCarrier()
-
-  def getUploadPage() = Action.async { implicit request =>
+  def getUploadPage() = strideAuth.async { implicit request =>
     Future.successful(Ok(views.html.upload()))
   }
 
-  def submitUploadPage() = Action.async(stream.bodyParser) { implicit request =>
+  def submitUploadPage() = strideAuth.async (stream.bodyParser) { implicit request =>
     stream.upload(request.body).map(noOfRecords => Ok(noOfRecords.toString))
   }
 }
