@@ -10,9 +10,7 @@ object AppDependencies {
     "uk.gov.hmrc" %% "play-ui" % "7.22.0",
     ws,
     "uk.gov.hmrc" %% "bootstrap-play-25" % "3.2.0",
-    "org.typelevel" %% "cats-core" % "1.1.0",
-    "com.lightbend.akka" %% "akka-stream-alpakka-csv" % "0.8",
-    "uk.gov.hmrc" %% "domain" % "5.2.0"
+    "org.typelevel" %% "cats-core" % "1.1.0"
   )
 
   def test(scope: String = "test") = Seq(
