@@ -29,8 +29,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.connector.IaConnector
 import uk.gov.hmrc.iafrontend.domain.GreenUtr
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
 
 class CSVStreamer @Inject()(iaConnector: IaConnector) {
 
@@ -46,17 +46,18 @@ class CSVStreamer @Inject()(iaConnector: IaConnector) {
   }
 
   def bodyParser(implicit ex: ExecutionContext, hc: HeaderCarrier): BodyParser[Source[Int, _]] = BodyParser { bs =>
-    val lineDelimiter: Flow[ByteString, Int, NotUsed] = Flow[ByteString]
-      .via(
-        Framing.delimiter(ByteString(","), 60000, allowTruncation = true)
-          .map(line => line.utf8String).grouped(50000)
-          .mapAsync(5)(lines => {
-            iaConnector.sendUtrs(lines.map(line => GreenUtr(line.replaceAll("[\n]", ""))).toList)
-          })
-      )
+    //todo write tests and perhaps just use clean byte on first bit of data
+    def cleanByte(byteString: ByteString):String = byteString.utf8String.split(" ").last.replaceAll("[^\\d.]", "").take(10)
+    def sendBatch(batchString:Seq[String]) = iaConnector.sendUtrs(batchString.map(line => GreenUtr(line)).toList)
 
+    val sendBatchsFlow: Flow[ByteString, Int, NotUsed] =
+      Flow[ByteString]
+        .via(
+          Framing.delimiter(ByteString(","), 60000, allowTruncation = true)
+            .map(cleanByte).grouped(50000)
+            .mapAsync(15)(sendBatch))
     Accumulator.source[ByteString]
-      .map(_.via(lineDelimiter))
+      .map(_.via(sendBatchsFlow))
       .map(Right.apply)
   }
 }
