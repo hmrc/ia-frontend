@@ -51,7 +51,7 @@ class CSVStreamer @Inject()(iaConnector: IaConnector) {
         Framing.delimiter(ByteString(","), 60000, allowTruncation = true)
           .map(line => line.utf8String).grouped(50000)
           .mapAsync(5)(lines => {
-            iaConnector.sendUtrs(lines.map(line => GreenUtr(line)).toList)
+            iaConnector.sendUtrs(lines.map(line => GreenUtr(line.replaceAll("[\n]", ""))).toList)
           })
       )
 
