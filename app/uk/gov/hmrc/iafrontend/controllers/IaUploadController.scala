@@ -42,7 +42,7 @@ class IaUploadController @Inject()(stream: CSVStreamer,
     Future.successful(Ok(views.html.upload()))
   }
 
-  def submitUploadPage() = strideAuth.async (stream.bodyParser) { implicit request =>
+  def submitUploadPage() = strideAuth.async(stream.bodyParser) { implicit request =>
     stream.upload(request.body).map(noOfRecords => Ok(noOfRecords.toString))
   }
 }

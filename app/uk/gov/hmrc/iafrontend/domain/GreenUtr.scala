@@ -17,8 +17,9 @@
 package uk.gov.hmrc.iafrontend.domain
 
 import play.api.libs.json.Json
-
-case class GreenUtr(utr: String)
+case class GreenUtr(utr: String){
+  if(utr.length != 10)throw new RuntimeException("Bad utr " + utr)
+}
 
 object GreenUtr{
   implicit val utrFormat = Json.format[GreenUtr]
