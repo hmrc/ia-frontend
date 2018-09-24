@@ -16,30 +16,40 @@
 
 package uk.gov.hmrc.iafrontend.controllers
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.when
 import play.api.http.Status
 import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
-import uk.gov.hmrc.auth.core.{AuthProviders, Enrolment, Enrolments}
 import uk.gov.hmrc.auth.core.retrieve.Retrievals
-import uk.gov.hmrc.iafrontend.{TestHelper, authMock}
+import uk.gov.hmrc.auth.core.{AuthProviders, Enrolment, Enrolments}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.auth.StrideAuthenticatedAction
+import uk.gov.hmrc.iafrontend.connector.IaConnector
 import uk.gov.hmrc.iafrontend.streams.CSVStreamer
 import uk.gov.hmrc.iafrontend.testsupport.Spec
+import uk.gov.hmrc.iafrontend.{TestHelper, authMock}
 import uk.gov.hmrc.play.test.WithFakeApplication
-
+import uk.gov.hmrc.iafrontend.FileTestHelper.getMockFileCSV
 import scala.concurrent.Future
 
 class IaUploadControllerSpec extends Spec with WithFakeApplication with TestHelper with authMock{
 
-  val mockStreamer = mock[CSVStreamer]
+  val mockIA = mock[IaConnector]
+  val streamer = new CSVStreamer(mockIA)
   val mockStrideAuth = mock[StrideAuthenticatedAction]
+
   val testAuthRequest = new StrideAuthenticatedAction(new testAuth,appConfig)
-  val controller = new IaUploadController(mockStreamer,testAuthRequest, messageApi, appConfig)
+  val controller = new IaUploadController(streamer,testAuthRequest, messageApi, appConfig)
+  implicit val system = ActorSystem("System")
+  implicit val materializer = ActorMaterializer()
 
   "GET /upload " should {
     "return 200" in {
       mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
-      val result = controller.getUploadPage()(fakeRequestGet)
+      val result = controller.getUploadPage()(fakeRequestGet).futureValue
       status(result) shouldBe Status.OK
     }
 
@@ -52,16 +62,15 @@ class IaUploadControllerSpec extends Spec with WithFakeApplication with TestHelp
 
   }
 
-  /*("Post /upload " should {
-    "return 200" in {
-      val result = controller.submitUploadPage()(fakeRequestPostForm)
+   "Post /upload " should {
+     "return 200" in {
+       mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
+       when(mockIA.drop()( ArgumentMatchers.any[HeaderCarrier])).thenReturn(Future.successful(()))
 
-    }
+       val result = controller.submitUploadPage()(fakeRequestPostForm.withMultipartFormDataBody(getMockFileCSV)).run()
+       status(result) shouldBe Status.OK
+     }
+   }
 
-    "return HTML" in {
-      val result = controller.submitUploadPage()(fakeRequestPostForm).futureValue
-
-    }
-*/
 }
 
