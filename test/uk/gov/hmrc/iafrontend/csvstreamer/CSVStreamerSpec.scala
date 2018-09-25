@@ -19,34 +19,49 @@ package uk.gov.hmrc.iafrontend.csvstreamer
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
+import akka.stream.scaladsl.{Flow, Sink}
 import akka.util.ByteString
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when,reset}
+import org.scalatest.BeforeAndAfterEach
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.FileTestHelper._
 import uk.gov.hmrc.iafrontend.connector.IaConnector
 import uk.gov.hmrc.iafrontend.domain.GreenUtr
-import uk.gov.hmrc.iafrontend.streams.CSVStreamer
+import uk.gov.hmrc.iafrontend.streams.{CSVStreamer, CSVStreamerConfig}
 import uk.gov.hmrc.iafrontend.testsupport.Spec
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, Future}
 
-class CSVStreamerSpec extends Spec{
+class CSVStreamerSpec extends Spec with BeforeAndAfterEach{
+
+
   val mockIA = mock[IaConnector]
-  val streamer = new CSVStreamer(mockIA)
   implicit val hc = HeaderCarrier()
   implicit val system = ActorSystem("System")
   implicit val materializer = ActorMaterializer()
 
+
+  override def beforeEach(): Unit = {
+    reset(mockIA)
+  }
   "CSVStreamer" should {
     "flow should send data to ia in batchs" in {
+      val streamer = new CSVStreamer(mockIA,CSVStreamerConfig(2,400))
       val flowToTest: Flow[ByteString, Int, NotUsed] = streamer.sendBatchesFlow()
       when(mockIA.sendUtrs(ArgumentMatchers.any[List[GreenUtr]])(ArgumentMatchers.any[HeaderCarrier])).thenReturn(Future.successful(2))
       val future = akka.stream.scaladsl.Source[ByteString](fileToMultipleByteStr(testFilePath)).via(flowToTest).runWith(Sink.fold(Seq.empty[Int])(_ :+ _))
       val result = Await.result(future,Duration.Inf)
       assert(result == List(2))
+    }
+    "flow should call ia everythime there is a batch size met in" in {
+      val streamer = new CSVStreamer(mockIA,CSVStreamerConfig(1,400))
+      val flowToTest: Flow[ByteString, Int, NotUsed] = streamer.sendBatchesFlow()
+      when(mockIA.sendUtrs(ArgumentMatchers.any[List[GreenUtr]])(ArgumentMatchers.any[HeaderCarrier])).thenReturn(Future.successful(2))
+      val future = akka.stream.scaladsl.Source[ByteString](fileToMultipleByteStr(testFilePath)).via(flowToTest).runWith(Sink.fold(Seq.empty[Int])(_ :+ _))
+      val result = Await.result(future,Duration.Inf)
+      verify(mockIA, times(2)).sendUtrs(ArgumentMatchers.any[List[GreenUtr]])(ArgumentMatchers.any[HeaderCarrier])
     }
   }
 }

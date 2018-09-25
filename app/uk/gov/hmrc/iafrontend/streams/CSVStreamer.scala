@@ -32,7 +32,8 @@ import uk.gov.hmrc.iafrontend.domain.GreenUtr
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class CSVStreamer @Inject()(iaConnector: IaConnector) {
+class CSVStreamer @Inject()(iaConnector: IaConnector,
+                            CSVStreamerConfig : CSVStreamerConfig) {
 
   //todo is this ok
   implicit val system = ActorSystem("System")
@@ -55,8 +56,9 @@ class CSVStreamer @Inject()(iaConnector: IaConnector) {
   def sendBatchesFlow()(implicit hc:HeaderCarrier): Flow[ByteString, Int, NotUsed] =
     Flow[ByteString]
       .via(
-        Framing.delimiter(ByteString(","), 60000, allowTruncation = true)
-          .map(cleanByte).grouped(50000)
+        Framing.delimiter(ByteString(","), CSVStreamerConfig.frameSize , allowTruncation = true)
+          .map(cleanByte).grouped(CSVStreamerConfig.batchSize)
+          //todo find out the parrellelism value
           .mapAsync(15)(sendBatch))
   def bodyParser(implicit ex: ExecutionContext, hc: HeaderCarrier): BodyParser[Source[Int, _]] = BodyParser { bs =>
     //todo write tests and perhaps just use clean byte on first bit of data

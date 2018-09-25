@@ -35,5 +35,7 @@ class Module extends AbstractModule {
     override def authConnector: AuthConnector = ac
   }
 
-  override def configure(): Unit = ()
+  override def configure(): Unit = (
+
+  )
 }

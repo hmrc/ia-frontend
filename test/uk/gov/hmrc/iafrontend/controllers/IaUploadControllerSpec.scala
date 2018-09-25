@@ -28,17 +28,18 @@ import uk.gov.hmrc.auth.core.{AuthProviders, Enrolment, Enrolments}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.auth.StrideAuthenticatedAction
 import uk.gov.hmrc.iafrontend.connector.IaConnector
-import uk.gov.hmrc.iafrontend.streams.CSVStreamer
+import uk.gov.hmrc.iafrontend.streams.{CSVStreamer, CSVStreamerConfig}
 import uk.gov.hmrc.iafrontend.testsupport.Spec
 import uk.gov.hmrc.iafrontend.{TestHelper, authMock}
 import uk.gov.hmrc.play.test.WithFakeApplication
 import uk.gov.hmrc.iafrontend.FileTestHelper.getMockFileCSV
+
 import scala.concurrent.Future
 
 class IaUploadControllerSpec extends Spec with WithFakeApplication with TestHelper with authMock{
 
   val mockIA = mock[IaConnector]
-  val streamer = new CSVStreamer(mockIA)
+  val streamer = new CSVStreamer(mockIA,CSVStreamerConfig(50,400))
   val mockStrideAuth = mock[StrideAuthenticatedAction]
 
   val testAuthRequest = new StrideAuthenticatedAction(new testAuth,appConfig)
