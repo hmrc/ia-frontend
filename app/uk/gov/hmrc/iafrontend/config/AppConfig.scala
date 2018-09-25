@@ -17,13 +17,14 @@
 package uk.gov.hmrc.iafrontend.config
 
 import javax.inject.{Inject, Singleton}
-import play.api.Configuration
+import play.api.{Configuration, Environment}
 import uk.gov.hmrc.play.config.ServicesConfig
 
 @Singleton
-class AppConfig @Inject()(servicesConfig: ServicesConfig,  config: Configuration)  {
+class AppConfig @Inject()(servicesConfig: ServicesConfig,  config: Configuration,environment: Environment)  {
 
-
+  val runTimeConfig =config
+  val runModeEnvironment = environment
   //todo perhaps move most of this to the config class
   final lazy val defaultOriginStride: String = {
     config
@@ -31,9 +32,6 @@ class AppConfig @Inject()(servicesConfig: ServicesConfig,  config: Configuration
       .orElse(config.getString("appName"))
       .getOrElse("undefined")
   }
-
-  def origin: String = defaultOriginStride
-  val strideLoginUrl = servicesConfig.baseUrl("stride-auth-frontend") + "/stride/sign-in"
   val strideRoles = config.getStringSeq("stride.roles").getOrElse(throw new RuntimeException("there are no stride roles in your config!"))
 
 

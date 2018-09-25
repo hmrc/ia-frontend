@@ -40,5 +40,5 @@ trait TestHelper {
   }
 
 
-  val appConfig = new AppConfig(new testServiceConfig(),configuration)
+  val appConfig = new AppConfig(new testServiceConfig(),configuration,env)
 }
