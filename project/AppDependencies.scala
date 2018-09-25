@@ -21,6 +21,7 @@ object AppDependencies {
     "org.jsoup" % "jsoup" % "1.10.2" % scope,
     "org.mockito" % "mockito-core" % "2.11.0" % scope,
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
+    "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.16" % Test,
      "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % scope
   )
 

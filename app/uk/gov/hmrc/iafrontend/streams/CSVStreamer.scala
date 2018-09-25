@@ -32,8 +32,10 @@ import uk.gov.hmrc.iafrontend.domain.GreenUtr
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class CSVStreamer @Inject()(iaConnector: IaConnector) {
+class CSVStreamer @Inject()(iaConnector: IaConnector,
+                            CSVStreamerConfig : CSVStreamerConfig) {
 
+  //todo is this ok
   implicit val system = ActorSystem("System")
   implicit val materializer = ActorMaterializer()
 
@@ -41,23 +43,30 @@ class CSVStreamer @Inject()(iaConnector: IaConnector) {
     Logger.info("Beginning parsing and dropping off db")
     iaConnector.drop().flatMap { _ =>
       val sink = Sink.fold[Int, Int](0)((total, batch) => total + batch)
+
       dataSource.toMat(sink)(Keep.right).run()
     }
   }
 
+  private def cleanByte(byteString: ByteString):String = byteString.utf8String.split(" ").last.replaceAll("[^\\d.]", "").take(10)
+  private  def sendBatch(batchString:Seq[String])(implicit headerCarrier: HeaderCarrier) = {
+    Logger.info("Sending batch")
+    iaConnector.sendUtrs(batchString.map(line => GreenUtr(line)).toList)
+  }
+  def sendBatchesFlow()(implicit hc:HeaderCarrier): Flow[ByteString, Int, NotUsed] =
+    Flow[ByteString]
+      .via(
+        Framing.delimiter(ByteString(","), CSVStreamerConfig.frameSize , allowTruncation = true)
+          .map(cleanByte).grouped(CSVStreamerConfig.batchSize)
+          //todo find out the parrellelism value
+          .mapAsync(CSVStreamerConfig.parallelism)(sendBatch))
   def bodyParser(implicit ex: ExecutionContext, hc: HeaderCarrier): BodyParser[Source[Int, _]] = BodyParser { bs =>
     //todo write tests and perhaps just use clean byte on first bit of data
     def cleanByte(byteString: ByteString):String = byteString.utf8String.split(" ").last.replaceAll("[^\\d.]", "").take(10)
     def sendBatch(batchString:Seq[String]) = iaConnector.sendUtrs(batchString.map(line => GreenUtr(line)).toList)
 
-    val sendBatchsFlow: Flow[ByteString, Int, NotUsed] =
-      Flow[ByteString]
-        .via(
-          Framing.delimiter(ByteString(","), 60000, allowTruncation = true)
-            .map(cleanByte).grouped(50000)
-            .mapAsync(15)(sendBatch))
     Accumulator.source[ByteString]
-      .map(_.via(sendBatchsFlow))
+      .map(_.via(sendBatchesFlow))
       .map(Right.apply)
   }
 }
