@@ -59,9 +59,12 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
         Framing.delimiter(ByteString(","), CSVStreamerConfig.frameSize , allowTruncation = true)
           .map(cleanByte).grouped(CSVStreamerConfig.batchSize)
           //todo find out the parrellelism value
-          .mapAsync(15)(sendBatch))
+          .mapAsync(CSVStreamerConfig.parallelism)(sendBatch))
   def bodyParser(implicit ex: ExecutionContext, hc: HeaderCarrier): BodyParser[Source[Int, _]] = BodyParser { bs =>
     //todo write tests and perhaps just use clean byte on first bit of data
+    def cleanByte(byteString: ByteString):String = byteString.utf8String.split(" ").last.replaceAll("[^\\d.]", "").take(10)
+    def sendBatch(batchString:Seq[String]) = iaConnector.sendUtrs(batchString.map(line => GreenUtr(line)).toList)
+
     Accumulator.source[ByteString]
       .map(_.via(sendBatchesFlow))
       .map(Right.apply)
