@@ -17,6 +17,7 @@
 package uk.gov.hmrc.iafrontend.connector
 
 import javax.inject.Inject
+import play.api.Logger
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.config.IaConfig
 import uk.gov.hmrc.iafrontend.domain.GreenUtr
@@ -33,7 +34,10 @@ class IaConnector  @Inject() (
   val urlDrop = s"${ia.baseUrl}/ia/drop"
 
   def sendUtrs(batchUtrs: List[GreenUtr])(implicit hc: HeaderCarrier): Future[Int] = {
-    http.POST(urlUpload, batchUtrs).map(result =>  result.body.toInt)
+    http.POST(urlUpload, batchUtrs).map(result => {
+      Logger.info("returned body " + result)
+      result.body.toInt
+    })
   }
 
   def drop()(implicit hc: HeaderCarrier): Future[Unit] = {
