@@ -34,9 +34,9 @@ class IaConnector  @Inject() (
   val urlDrop = s"${ia.baseUrl}/ia/drop"
 
   def sendUtrs(batchUtrs: List[GreenUtr])(implicit hc: HeaderCarrier): Future[Int] = {
-    http.POST(urlUpload, batchUtrs).map(result => {
-      Logger.info("returned body " + result)
-      result.body.toInt
+    http.POST(urlUpload, batchUtrs).map(result => result.status match{
+      case 200 => result.body.toInt
+      case _ => throw new Exception(s"batch update error for url ${urlUpload}  utrs list ${batchUtrs} bad end retuned ${result}")
     })
   }
 
