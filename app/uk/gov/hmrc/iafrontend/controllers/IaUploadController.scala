@@ -17,9 +17,14 @@
 package uk.gov.hmrc.iafrontend.controllers
 
 
+
+
+import java.io.File
+import java.nio.file.Paths
+
 import javax.inject.{Inject, Singleton}
+import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.auth.StrideAuthenticatedAction
 import uk.gov.hmrc.iafrontend.config.AppConfig
@@ -37,12 +42,20 @@ class IaUploadController @Inject()(stream: CSVStreamer,
                                    implicit val appConfig: AppConfig) extends FrontendController with I18nSupport {
 
   //we need this for the stream bodyParser
-  implicit  val Hc = HeaderCarrier()
+  implicit val Hc = HeaderCarrier()
+
   def getUploadPage() = strideAuth.async { implicit request =>
     Future.successful(Ok(views.html.upload()))
   }
 
-  def submitUploadPage() = strideAuth.async(stream.bodyParser) { implicit request =>
-    stream.upload(request.body).map(noOfRecords => Ok(noOfRecords.toString))
+  def submitUploadPage() = strideAuth.async(parse.multipartFormData) { implicit request =>
+    request.body.file("file").map { ZippedFile =>
+      val filename = Paths.get(ZippedFile.filename).getFileName
+      ZippedFile.ref.moveTo(new File(s"$filename"), replace = true)
+
+      stream.processFile(filename).map(result => Ok(s"$result"))
+    }.getOrElse(
+      Future.successful(Ok("Upload failed please try again"))
+    )
   }
 }
