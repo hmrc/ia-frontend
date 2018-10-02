@@ -26,15 +26,10 @@ import play.api.mvc.MultipartFormData
 import play.api.mvc.MultipartFormData.FilePart
 
 object FileTestHelper {
-  //todo move to file refactor
-  def postSource(tmpFile: File) = {
-    import play.api.mvc.MultipartFormData._
-    Source(FilePart("name", "hello.txt", Option("text/plain"),
-      FileIO.fromPath(tmpFile.toPath)) :: DataPart("key", "value") :: List())
-  }
-  val testFilePath = System.getProperty("user.dir") + "/test/uk/gov/hmrc/iafrontend/resources/goodUtr.csv"
+
+  val testFilePath = System.getProperty("user.dir") + "/test/uk/gov/hmrc/iafrontend/resources/goodUtr.zip"
   val fileTest: File = new File(testFilePath)
-   def getMockFileCSV = {
+   def getMockFileZipedCsvFile = {
     val userDirectory = System.getProperty("user.dir")
     def deleteIfExists(filePath:String):Unit = {
       val fileTemp = new File(filePath)
@@ -43,12 +38,12 @@ object FileTestHelper {
       }
       ()
     }
-    deleteIfExists(System.getProperty("user.dir") + "/test/uk/gov/hmrc/iafrontend/resources/copy/goodUtr.csv")
-    Files.copy(fileTest.toPath, new java.io.File(System.getProperty("user.dir") + "/test/uk/gov/hmrc/iafrontend/resources/copy/goodUtr.csv").toPath)
-    val tempFile = TemporaryFile(new java.io.File(userDirectory + "/test/uk/gov/hmrc/iafrontend/resources/copy/goodUtr.csv"))
+    deleteIfExists(System.getProperty("user.dir") + "/test/uk/gov/hmrc/iafrontend/resources/copy/goodUtr.zip")
+    Files.copy(fileTest.toPath, new java.io.File(System.getProperty("user.dir") + "/test/uk/gov/hmrc/iafrontend/resources/copy/goodUtr.zip").toPath)
+    val tempFile = TemporaryFile(new java.io.File(userDirectory + "/test/uk/gov/hmrc/iafrontend/resources/copy/goodUtr.zip"))
     val part = FilePart[TemporaryFile](
       key = "fileParam",
-      filename = "goodUtr.csv",
+      filename = "goodUtr.zip",
       contentType = Some("Content-Type: multipart/form-data"),
       ref = tempFile)
     val file = MultipartFormData(dataParts = Map(), files = Seq(part), badParts = Seq())
