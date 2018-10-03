@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.iafrontend.streams
 
+import java.io.File
 import java.nio.file.{Files, Path}
 
 import akka.NotUsed
@@ -44,26 +45,31 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
   def processFile(filePath: Path)(implicit headerCarrier: HeaderCarrier): Future[Int] = {
 
     val desSpot = root / "tmp"
-    val fileName = filePath.toString.replaceAll(".zip","")
+    val fileName = filePath.toString.replaceAll(".zip", "")
     filePath.unzipTo(destination = desSpot)
     val csvFile = Files.newDirectoryStream(desSpot.path)
       .filter(_.getFileName.toString.contains(fileName))
       .map(_.toAbsolutePath).head
-    upload(parseFile(csvFile))
+    upload(parseFile(csvFile),filePath)
   }
 
-  private def upload(dataSource: Source[Int, _])(implicit headerCarrier: HeaderCarrier) = {
+  private def upload(dataSource: Source[Int, _],filePath:Path)(implicit headerCarrier: HeaderCarrier) = {
     Logger.info("Beginning parsing and dropping off db")
     iaConnector.drop().flatMap { _ =>
+      Logger.info("Db dropped beginning upload")
       val sink = Sink.fold[Int, Int](0)((total, batch) => total + batch)
 
-      dataSource.toMat(sink)(Keep.right).run()
+      dataSource.toMat(sink)(Keep.right).run().map { totalNumber =>
+        deleteFile(filePath.toString)
+        totalNumber
+      }
     }
   }
 
   private def cleanByte(byteString: ByteString): String = byteString.utf8String.replaceAll("[^\\d.]", "").take(10)
 
   private def sendBatch(batchString: Seq[String])(implicit headerCarrier: HeaderCarrier) = {
+    Logger.info("Sending batch")
     iaConnector.sendUtrs(batchString.map(line => {
       GreenUtr(line)
     }).toList)
@@ -79,5 +85,9 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
 
   def parseFile(file: Path)(implicit ex: ExecutionContext, hc: HeaderCarrier): Source[Int, _] = {
     FileIO.fromPath(file).via(sendBatchesFlow)
+  }
+//todo write tests
+  private def deleteFile(path: String) = {
+    val fileTemp = new File(path).delete()
   }
 }
