@@ -20,16 +20,19 @@ import javax.inject.Inject
 import play.api.Configuration
 import uk.gov.hmrc.iafrontend.streams.CSVStreamerConfig._
 //todo find out a good number for parallelism
-case class CSVStreamerConfig(batchSize:Int,frameSize:Int , parallelism:Int = 15) {
+case class CSVStreamerConfig(batchSize:Int,frameSize:Int , parallelism:Int ) {
   @Inject
   def this (configuration: Configuration) = {
     this(
       configuration.getInt("batch-size").getOrElse(defaultBatchSize),
-      configuration.getInt("frame-size").getOrElse(defaultFrameSize)
+      configuration.getInt("frame-size").getOrElse(defaultFrameSize),
+      configuration.getInt("parallelism").getOrElse(defaultParallelism)
     )
   }
 }
 object CSVStreamerConfig{
   val defaultBatchSize = 50000
   val defaultFrameSize = 60000
+  //todo set to cpu cores
+  val defaultParallelism= 5
 }
