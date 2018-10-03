@@ -51,7 +51,7 @@ class IaUploadController @Inject()(stream: CSVStreamer,
   def submitUploadPage() = strideAuth.async(parse.multipartFormData) { implicit request =>
     request.body.file("file").map { ZippedFile =>
       val filename = Paths.get(ZippedFile.filename).getFileName
-      ZippedFile.ref.moveTo(new File(s"/$filename"), replace = true)
+      ZippedFile.ref.moveTo(new File(s"$filename"), replace = true)
 
       stream.processFile(filename)
       Future.successful(Redirect(routes.IaUploadController.getUploadCheck()))
