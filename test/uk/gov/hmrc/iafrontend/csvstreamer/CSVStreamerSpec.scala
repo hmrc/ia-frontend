@@ -48,7 +48,7 @@ class CSVStreamerSpec extends Spec with BeforeAndAfterEach{
   }
   "CSVStreamer" should {
     "flow should send data to ia in batchs" in {
-      val streamer = new CSVStreamer(mockIA,CSVStreamerConfig(2,400))
+      val streamer = new CSVStreamer(mockIA,CSVStreamerConfig(2,400,1))
       val flowToTest: Flow[ByteString, Int, NotUsed] = streamer.sendBatchesFlow()
       when(mockIA.sendUtrs(ArgumentMatchers.any[List[GreenUtr]])(ArgumentMatchers.any[HeaderCarrier])).thenReturn(Future.successful(2))
       val future = akka.stream.scaladsl.Source[ByteString](fileToMultipleByteStr(testFilePath)).via(flowToTest).runWith(Sink.fold(Seq.empty[Int])(_ :+ _))
@@ -56,7 +56,7 @@ class CSVStreamerSpec extends Spec with BeforeAndAfterEach{
       assert(result == List(2))
     }
     "flow should call ia everythime there is a batch size met in" in {
-      val streamer = new CSVStreamer(mockIA,CSVStreamerConfig(1,400))
+      val streamer = new CSVStreamer(mockIA,CSVStreamerConfig(1,400,1))
       val flowToTest: Flow[ByteString, Int, NotUsed] = streamer.sendBatchesFlow()
       when(mockIA.sendUtrs(ArgumentMatchers.any[List[GreenUtr]])(ArgumentMatchers.any[HeaderCarrier])).thenReturn(Future.successful(2))
       val future = akka.stream.scaladsl.Source[ByteString](fileToMultipleByteStr(testFilePath)).via(flowToTest).runWith(Sink.fold(Seq.empty[Int])(_ :+ _))

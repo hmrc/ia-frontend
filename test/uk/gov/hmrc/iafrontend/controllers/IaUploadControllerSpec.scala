@@ -38,7 +38,7 @@ import scala.concurrent.Future
 class IaUploadControllerSpec extends Spec with WithFakeApplication with TestHelper with authMock{
 
   val mockIA = mock[IaConnector]
-  val streamer = new CSVStreamer(mockIA,CSVStreamerConfig(50,400))
+  val streamer = new CSVStreamer(mockIA,CSVStreamerConfig(50,400,1))
   val mockStrideAuth = mock[StrideAuthenticatedAction]
 
   val testAuthRequest = new StrideAuthenticatedAction(new testAuth,appConfig)
