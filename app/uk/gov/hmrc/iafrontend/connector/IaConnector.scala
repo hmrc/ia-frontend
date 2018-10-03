@@ -17,7 +17,6 @@
 package uk.gov.hmrc.iafrontend.connector
 
 import javax.inject.Inject
-import play.api.Logger
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.config.IaConfig
 import uk.gov.hmrc.iafrontend.domain.GreenUtr
@@ -27,14 +26,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-class IaConnector  @Inject() (
-                               http: HttpClient,
-                               ia: IaConfig) {
-  val urlUpload = s"${ia.baseUrl}/ia/upload"
-  val urlDrop = s"${ia.baseUrl}/ia/drop"
+class IaConnector @Inject()(
+                             http: HttpClient,
+                             ia: IaConfig) {
+  private val urlUpload = s"${ia.baseUrl}/ia/upload"
+  private val urlDrop = s"${ia.baseUrl}/ia/drop"
+  private val urlCount = s"${ia.baseUrl}/ia/count"
 
   def sendUtrs(batchUtrs: List[GreenUtr])(implicit hc: HeaderCarrier): Future[Int] = {
-    http.POST(urlUpload, batchUtrs).map(result => result.status match{
+    http.POST(urlUpload, batchUtrs).map(result => result.status match {
       case 200 => result.body.toInt
       case _ => throw new Exception(s"batch update error for url ${urlUpload}  utrs list ${batchUtrs} bad end retuned ${result}")
     })
@@ -42,6 +42,12 @@ class IaConnector  @Inject() (
 
   def drop()(implicit hc: HeaderCarrier): Future[Unit] = {
     http.POSTEmpty(urlDrop).map(_ => ())
+  }
+
+  def count()(implicit hc: HeaderCarrier): Future[String] = {
+    http.GET(urlCount).map(response => response.status match {
+      case 200 => response.body
+    })
   }
 }
 

@@ -1,4 +1,5 @@
 # microservice specific routes
 
-GET        /upload                 uk.gov.hmrc.iafrontend.controllers.IaUploadController.getUploadPage()
-POST       /upload                 uk.gov.hmrc.iafrontend.controllers.IaUploadController.submitUploadPage()
+GET         /upload              uk.gov.hmrc.iafrontend.controllers.IaUploadController.getUploadPage()
+POST        /upload              uk.gov.hmrc.iafrontend.controllers.IaUploadController.submitUploadPage()
+GET         /upload/check        uk.gov.hmrc.iafrontend.controllers.IaUploadController.getUploadCheck()
