@@ -1,2 +1,6 @@
-upload.title= Upload green utrs todo change content
-upload.header = Upload green utrs todo change content
+upload.title=Upload green utrs as a zipped csv file
+upload.header=Upload green utrs as a zipped csv file
+upload.check.title=Upload check
+upload.check.header=Upload check
+upload.check.p1=Keep clicking this button until you see all the records are uploaded
+upload.check.p2=Warning this job can take several minutes

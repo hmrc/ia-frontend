@@ -16,27 +16,23 @@
 
 package uk.gov.hmrc.iafrontend.streams
 
-import java.io.File
 import java.nio.file.{Files, Path}
 
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Compression, FileIO, Flow, Framing, Keep, Sink, Source}
+import akka.stream.scaladsl.{FileIO, Flow, Framing, Keep, Sink, Source}
 import akka.util.ByteString
-import better.files.File.root
+import better.files.File.{root, _}
 import javax.inject.Inject
 import play.api.Logger
-import play.api.libs.streams.Accumulator
-import play.api.mvc.BodyParser
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.connector.IaConnector
 import uk.gov.hmrc.iafrontend.domain.GreenUtr
-import better.files
-import better.files.File._
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
+
 import scala.collection.JavaConversions._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class CSVStreamer @Inject()(iaConnector: IaConnector,
                             CSVStreamerConfig: CSVStreamerConfig) {

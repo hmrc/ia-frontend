@@ -23,20 +23,20 @@ import java.io.File
 import java.nio.file.Paths
 
 import javax.inject.{Inject, Singleton}
-import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.auth.StrideAuthenticatedAction
 import uk.gov.hmrc.iafrontend.config.AppConfig
+import uk.gov.hmrc.iafrontend.connector.IaConnector
 import uk.gov.hmrc.iafrontend.streams.CSVStreamer
 import uk.gov.hmrc.iafrontend.views
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
 class IaUploadController @Inject()(stream: CSVStreamer,
+                                   iaConnector: IaConnector,
                                    strideAuth: StrideAuthenticatedAction,
                                    val messagesApi: MessagesApi,
                                    implicit val appConfig: AppConfig) extends FrontendController with I18nSupport {
@@ -51,11 +51,16 @@ class IaUploadController @Inject()(stream: CSVStreamer,
   def submitUploadPage() = strideAuth.async(parse.multipartFormData) { implicit request =>
     request.body.file("file").map { ZippedFile =>
       val filename = Paths.get(ZippedFile.filename).getFileName
-      ZippedFile.ref.moveTo(new File(s"$filename"), replace = true)
+      ZippedFile.ref.moveTo(new File(s"/$filename"), replace = true)
 
-      stream.processFile(filename).map(result => Ok(s"$result"))
+      stream.processFile(filename)
+      Future.successful(Redirect(routes.IaUploadController.getUploadCheck()))
     }.getOrElse(
       Future.successful(Ok("Upload failed please try again"))
     )
+  }
+
+  def getUploadCheck() = strideAuth.async { implicit request =>
+    iaConnector.count().map(res => Ok(views.html.upload_check(res)))
   }
 }

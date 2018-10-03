@@ -32,7 +32,6 @@ import uk.gov.hmrc.iafrontend.streams.{CSVStreamer, CSVStreamerConfig}
 import uk.gov.hmrc.iafrontend.testsupport.Spec
 import uk.gov.hmrc.iafrontend.{TestHelper, authMock}
 import uk.gov.hmrc.play.test.WithFakeApplication
-import uk.gov.hmrc.iafrontend.FileTestHelper.getMockFileZipedCsvFile
 
 import scala.concurrent.Future
 
@@ -43,10 +42,11 @@ class IaUploadControllerSpec extends Spec with WithFakeApplication with TestHelp
   val mockStrideAuth = mock[StrideAuthenticatedAction]
 
   val testAuthRequest = new StrideAuthenticatedAction(new testAuth,appConfig)
-  val controller = new IaUploadController(streamer,testAuthRequest, messageApi, appConfig)
+
+  val controller = new IaUploadController(streamer, mockIA, testAuthRequest, messageApi, appConfig)
   implicit val system = ActorSystem("System")
   implicit val materializer = ActorMaterializer()
-
+  when(mockIA.count()(ArgumentMatchers.any[HeaderCarrier])) thenReturn Future.successful("We have 2 records")
   "GET /upload " should {
     "return 200" in {
       mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
@@ -59,6 +59,25 @@ class IaUploadControllerSpec extends Spec with WithFakeApplication with TestHelp
       val result = controller.getUploadPage()(fakeRequestGet)
       contentType(result) shouldBe Some("text/html")
       charset(result) shouldBe Some("utf-8")
+    }
+
+  }
+  "GET /upload/check " should {
+    "return 200" in {
+      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
+      val result = controller.getUploadCheck()(fakeRequestGet).futureValue
+      status(result) shouldBe Status.OK
+    }
+
+    "return HTML" in {
+      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
+      val result = controller.getUploadCheck()(fakeRequestGet)
+      contentType(result) shouldBe Some("text/html")
+      charset(result) shouldBe Some("utf-8")
+    }
+    "call the ia count in" in {
+      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
+      val result = controller.getUploadCheck()(fakeRequestGet)
     }
 
   }
