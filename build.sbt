@@ -1,5 +1,6 @@
 import TestPhases.oneForkedJvmPerTest
 import uk.gov.hmrc.DefaultBuildSettings.addTestReportOption
+import uk.gov.hmrc.SbtArtifactory
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
 val appName = "ia-frontend"
@@ -15,7 +16,7 @@ lazy val scoverageSettings = {
   )
 }
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+  .enablePlugins(play.sbt.PlayScala,SbtArtifactory, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   .settings(
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test(),
     evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false)
@@ -31,9 +32,11 @@ lazy val microservice = Project(appName, file("."))
     parallelExecution in IntegrationTest          := false,
     addTestReportOption(IntegrationTest, "int-test-reports")
   )
+  .settings(majorVersion := 0)
   .settings(
     resolvers += Resolver.jcenterRepo
   )
+  .settings(makePublicallyAvailableOnBintray := true)
   .settings(
     scalacOptions ++= Seq(
       "-Xfatal-warnings",
