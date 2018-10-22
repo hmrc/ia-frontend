@@ -32,6 +32,7 @@ class IaConnector @Inject()(
   private val urlUpload = s"${ia.baseUrl}/ia/upload"
   private val urlDrop = s"${ia.baseUrl}/ia/drop"
   private val urlCount = s"${ia.baseUrl}/ia/count"
+  private val urlStart = s"${ia.baseUrl}/ia/upload/start"
 
   def sendUtrs(batchUtrs: List[GreenUtr])(implicit hc: HeaderCarrier): Future[Int] = {
     http.POST(urlUpload, batchUtrs).map(result => result.status match {

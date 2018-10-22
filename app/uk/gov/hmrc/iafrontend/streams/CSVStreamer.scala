@@ -42,7 +42,7 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
   implicit val system = ActorSystem("System")
   implicit val materializer = ActorMaterializer()
 
-  def processFile(filePath: Path)(implicit headerCarrier: HeaderCarrier): Future[Int] = {
+  def processFile(filePath: Path)(implicit headerCarrier: HeaderCarrier): Future[Unit] = {
 
     val desSpot = root / "tmp"
     val fileName = filePath.toString.replaceAll(".zip", "")
@@ -54,16 +54,12 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
   }
 
   private def upload(dataSource: Source[Int, _],filePath:Path)(implicit headerCarrier: HeaderCarrier) = {
-    Logger.info("Beginning parsing and dropping off db")
-    iaConnector.drop().flatMap { _ =>
-      Logger.info("Db dropped beginning upload")
+    Logger.info("Beginning parsing of csv file")
       val sink = Sink.fold[Int, Int](0)((total, batch) => total + batch)
-
       dataSource.toMat(sink)(Keep.right).run().map { totalNumber =>
         deleteFile(filePath.toString)
         totalNumber
-      }
-    }
+      }.flatMap(_ => iaConnector.drop())
   }
 
   private def cleanByte(byteString: ByteString): String = byteString.utf8String.replaceAll("[^\\d.]", "").take(10)
