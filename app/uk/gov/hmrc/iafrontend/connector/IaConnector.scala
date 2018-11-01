@@ -30,9 +30,8 @@ class IaConnector @Inject()(
                              http: HttpClient,
                              ia: IaConfig) {
   private val urlUpload = s"${ia.baseUrl}/ia/upload"
-  private val urlDrop = s"${ia.baseUrl}/ia/drop"
+  private val urlSwitch = s"${ia.baseUrl}/ia/switch"
   private val urlCount = s"${ia.baseUrl}/ia/count"
-  private val urlStart = s"${ia.baseUrl}/ia/upload/start"
 
   def sendUtrs(batchUtrs: List[GreenUtr])(implicit hc: HeaderCarrier): Future[Int] = {
     http.POST(urlUpload, batchUtrs).map(result => result.status match {
@@ -41,8 +40,8 @@ class IaConnector @Inject()(
     })
   }
 
-  def drop()(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.POSTEmpty(urlDrop).map(_ => ())
+  def switch()(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.POSTEmpty(urlSwitch).map(_ => ())
   }
 
   def count()(implicit hc: HeaderCarrier): Future[String] = {

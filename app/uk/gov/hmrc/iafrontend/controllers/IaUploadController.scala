@@ -61,6 +61,10 @@ class IaUploadController @Inject()(stream: CSVStreamer,
     )
   }
 
+  def switchDb() = strideAuth.async { implicit request =>
+    iaConnector.switch().map(_ =>Redirect(routes.IaUploadController.getUploadCheck()))
+  }
+
   def getUploadCheck() = strideAuth.async { implicit request =>
     iaConnector.count().map(res => Ok(views.html.upload_check(res)))
   }
