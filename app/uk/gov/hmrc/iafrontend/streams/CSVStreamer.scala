@@ -50,16 +50,18 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
     val csvFile = Files.newDirectoryStream(desSpot.path)
       .filter(_.getFileName.toString.contains(fileName))
       .map(_.toAbsolutePath).head
-    upload(parseFile(csvFile),filePath)
+    upload(parseFile(csvFile),filePath).onComplete{_ =>
+      deleteFile(filePath.toString)
+      iaConnector.switch()
+    }
   }
 
   private def upload(dataSource: Source[Int, _],filePath:Path)(implicit headerCarrier: HeaderCarrier) = {
     Logger.info("Beginning parsing of csv file")
-      val sink = Sink.fold[Int, Int](0)((total, batch) => total + batch)
-      dataSource.toMat(sink)(Keep.right).run().onComplete { _ =>
-        deleteFile(filePath.toString)
-        iaConnector.switch()
-      }
+      val sink = Sink.fold[Int, Int](0)((total, batch) =>total + batch)
+      dataSource.recover{
+        case e => throw e
+  }.toMat(sink)(Keep.right).run()
   }
 
   private def cleanByte(byteString: ByteString): String = byteString.utf8String.replaceAll("[^\\d.]", "").take(10)

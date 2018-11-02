@@ -53,16 +53,11 @@ class IaUploadController @Inject()(stream: CSVStreamer,
       //todo might want to delete these in case jvm fills up
       val filename = Paths.get(ZippedFile.filename).getFileName
       ZippedFile.ref.moveTo(new File(s"$filename"), replace = true)
-
       stream.processFile(filename)
       Future.successful(Redirect(routes.IaUploadController.getUploadCheck()))
     }.getOrElse(
       Future.successful(Ok("Upload failed please try again"))
     )
-  }
-
-  def switchDb() = strideAuth.async { implicit request =>
-    iaConnector.switch().map(_ =>Redirect(routes.IaUploadController.getUploadCheck()))
   }
 
   def getUploadCheck() = strideAuth.async { implicit request =>
