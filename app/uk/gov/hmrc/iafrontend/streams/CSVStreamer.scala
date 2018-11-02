@@ -42,7 +42,7 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
   implicit val system = ActorSystem("System")
   implicit val materializer = ActorMaterializer()
 
-  def processFile(filePath: Path)(implicit headerCarrier: HeaderCarrier): Future[Int] = {
+  def processFile(filePath: Path)(implicit headerCarrier: HeaderCarrier): Unit = {
 
     val desSpot = root / "tmp"
     val fileName = filePath.toString.replaceAll(".zip", "")
@@ -50,20 +50,18 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
     val csvFile = Files.newDirectoryStream(desSpot.path)
       .filter(_.getFileName.toString.contains(fileName))
       .map(_.toAbsolutePath).head
-    upload(parseFile(csvFile),filePath)
+    upload(parseFile(csvFile),filePath).onComplete{_ =>
+      deleteFile(filePath.toString)
+      iaConnector.switch()
+    }
   }
 
   private def upload(dataSource: Source[Int, _],filePath:Path)(implicit headerCarrier: HeaderCarrier) = {
-    Logger.info("Beginning parsing and dropping off db")
-    iaConnector.drop().flatMap { _ =>
-      Logger.info("Db dropped beginning upload")
-      val sink = Sink.fold[Int, Int](0)((total, batch) => total + batch)
-
-      dataSource.toMat(sink)(Keep.right).run().map { totalNumber =>
-        deleteFile(filePath.toString)
-        totalNumber
-      }
-    }
+    Logger.info("Beginning parsing of csv file")
+      val sink = Sink.fold[Int, Int](0)((total, batch) =>total + batch)
+      dataSource.recover{
+        case e => throw e
+  }.toMat(sink)(Keep.right).run()
   }
 
   private def cleanByte(byteString: ByteString): String = byteString.utf8String.replaceAll("[^\\d.]", "").take(10)
@@ -86,8 +84,8 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
   def parseFile(file: Path)(implicit ex: ExecutionContext, hc: HeaderCarrier): Source[Int, _] = {
     FileIO.fromPath(file).via(sendBatchesFlow)
   }
-//todo write tests
+
   private def deleteFile(path: String) = {
-    val fileTemp = new File(path).delete()
+    new File(path).delete()
   }
 }

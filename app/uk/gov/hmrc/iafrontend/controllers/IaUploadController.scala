@@ -53,7 +53,6 @@ class IaUploadController @Inject()(stream: CSVStreamer,
       //todo might want to delete these in case jvm fills up
       val filename = Paths.get(ZippedFile.filename).getFileName
       ZippedFile.ref.moveTo(new File(s"$filename"), replace = true)
-
       stream.processFile(filename)
       Future.successful(Redirect(routes.IaUploadController.getUploadCheck()))
     }.getOrElse(
