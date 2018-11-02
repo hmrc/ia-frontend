@@ -32,7 +32,7 @@ class StrideAuthSpec extends authMock with TestHelper{
   "StrideAuthenticatedAction " should {
 
     "Allow a valid authorized request " in {
-      mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
+      mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
       val result: Result = testAuthRequest.invokeBlock(fakeRequestGet, (test: Request[Product with Serializable]) => Future.successful(Ok(""))).futureValue
       status(result) shouldBe 200
     }

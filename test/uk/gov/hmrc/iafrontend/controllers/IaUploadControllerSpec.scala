@@ -49,13 +49,13 @@ class IaUploadControllerSpec extends Spec with WithFakeApplication with TestHelp
   when(mockIA.count()(ArgumentMatchers.any[HeaderCarrier])) thenReturn Future.successful("We have 2 records")
   "GET /upload " should {
     "return 200" in {
-      mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
+      mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
       val result = controller.getUploadPage()(fakeRequestGet).futureValue
       status(result) shouldBe Status.OK
     }
 
     "return HTML" in {
-      mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
+      mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
       val result = controller.getUploadPage()(fakeRequestGet)
       contentType(result) shouldBe Some("text/html")
       charset(result) shouldBe Some("utf-8")
@@ -64,19 +64,19 @@ class IaUploadControllerSpec extends Spec with WithFakeApplication with TestHelp
   }
   "GET /upload/check " should {
     "return 200" in {
-      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
+      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
       val result = controller.getUploadCheck()(fakeRequestGet).futureValue
       status(result) shouldBe Status.OK
     }
 
     "return HTML" in {
-      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
+      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
       val result = controller.getUploadCheck()(fakeRequestGet)
       contentType(result) shouldBe Some("text/html")
       charset(result) shouldBe Some("utf-8")
     }
     "call the ia count in" in {
-      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
+      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
       val result = controller.getUploadCheck()(fakeRequestGet)
     }
 
@@ -84,7 +84,7 @@ class IaUploadControllerSpec extends Spec with WithFakeApplication with TestHelp
 //todo write tests
    /*"Post /upload " should {
      "return 200" in {
-       mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("hmrc-c")))))
+       mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
        when(mockIA.drop()( ArgumentMatchers.any[HeaderCarrier])).thenReturn(Future.successful(()))
 
        val result = controller.submitUploadPage()(fakeRequestPostForm.withMultipartFormDataBody(getMockFileZipedCsvFile)).run()
