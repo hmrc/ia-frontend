@@ -37,6 +37,12 @@ class StrideAuthSpec extends authMock with TestHelper{
       status(result) shouldBe 200
     }
 
+    "Allow a valid authorized request and be case insensitive" in {
+      mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("insolvency_analytics_user")))))
+      val result: Result = testAuthRequest.invokeBlock(fakeRequestGet, (test: Request[Product with Serializable]) => Future.successful(Ok(""))).futureValue
+      status(result) shouldBe 200
+    }
+
     "return an unauthorized " in {
       mockAuthorise(AuthProviders(PrivilegedApplication),retrievals = Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("b")))))
       val result: Result = testAuthRequest.invokeBlock(fakeRequestGet, (test: Request[Product with Serializable]) => Future.successful(Ok(""))).futureValue
