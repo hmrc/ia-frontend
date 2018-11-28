@@ -53,10 +53,10 @@ class LockService @Inject()(http: HttpClient, lockConfig: LockConfig) {
       .map(_ => Logger.info(s"$logMessage - Done"))
       .recover {
         case e: Upstream4xxResponse if e.upstreamResponseCode == Status.CONFLICT =>
-          Logger.error(s"$logMessage - Failed. The '$lockName' lockName is already in use. Have you run recon before it finished?", e)
-          throw new LockException(s"The '$lockName' lockName is already in use. Have you run recon before it finished?", e)
+          Logger.error(s"$logMessage - Failed. The '$lockName' lockName is already in use. Have you run ia before it finished?", e)
+          throw new LockException(s"The '$lockName' lockName is already in use. Have you run ia before it finished?", e)
         case e =>
-          Logger.error(s"$logMessage - Failed. The '$lockName' lockName is already in use. Have you run recon before it finished?", e)
+          Logger.error(s"$logMessage - Failed. The '$lockName' lockName is already in use. Have you run ia before it finished?", e)
           throw new LockException(s"$logMessage - Failed", e)
       }
   }
@@ -72,7 +72,7 @@ class LockService @Inject()(http: HttpClient, lockConfig: LockConfig) {
         case uk.gov.hmrc.http.Upstream4xxResponse(_, 409, _, _) => ()
         case ex =>
           val timeOut = lockConfig.timeout
-          val errMessage = s"$logMessage - Failed. If The recon finished you can ignore that error. The lock will automatically expire in $timeOut"
+          val errMessage = s"$logMessage - Failed. If The ia finished you can ignore that error. The lock will automatically expire in $timeOut"
           Logger.error(errMessage)
           throw new LockException(errMessage, ex)
       }
