@@ -20,7 +20,7 @@ package uk.gov.hmrc.iafrontend.controllers
 
 
 import java.io.File
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 
 import javax.inject.{Inject, Singleton}
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -28,15 +28,17 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.auth.StrideAuthenticatedAction
 import uk.gov.hmrc.iafrontend.config.AppConfig
 import uk.gov.hmrc.iafrontend.connector.IaConnector
+import uk.gov.hmrc.iafrontend.lock.LockService
 import uk.gov.hmrc.iafrontend.streams.CSVStreamer
 import uk.gov.hmrc.iafrontend.views
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class IaUploadController @Inject()(stream: CSVStreamer,
                                    iaConnector: IaConnector,
+                                   lockService: LockService,
                                    strideAuth: StrideAuthenticatedAction,
                                    val messagesApi: MessagesApi,
                                    implicit val appConfig: AppConfig) extends FrontendController with I18nSupport {
@@ -53,11 +55,13 @@ class IaUploadController @Inject()(stream: CSVStreamer,
       //todo might want to delete these in case jvm fills up
       val filename = Paths.get(ZippedFile.filename).getFileName
       ZippedFile.ref.moveTo(new File(s"$filename"), replace = true)
-      stream.processFile(filename)
-      Future.successful(Redirect(routes.IaUploadController.getUploadCheck()))
+      checkLockAndStream(filename).map(_ => Redirect(routes.IaUploadController.getUploadCheck()))
     }.getOrElse(
       Future.successful(Ok("Upload failed please try again"))
     )
+  }
+ private def checkLockAndStream(filename:Path)= {
+    lockService.acquire(Hc).map{_ =>stream.processFile(filename)}
   }
 
   def getUploadCheck() = strideAuth.async { implicit request =>
