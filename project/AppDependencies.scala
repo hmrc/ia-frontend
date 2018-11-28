@@ -21,6 +21,7 @@ object AppDependencies {
     "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % scope,
     "org.jsoup" % "jsoup" % "1.10.2" % scope,
     "org.mockito" % "mockito-core" % "2.11.0" % scope,
+    "com.github.tomakehurst" % "wiremock" % "2.18.0" % scope,
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
     "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.16" % Test,
      "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % scope

@@ -30,12 +30,14 @@ import play.api.Logger
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.connector.IaConnector
 import uk.gov.hmrc.iafrontend.domain.GreenUtr
+import uk.gov.hmrc.iafrontend.lock.LockService
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class CSVStreamer @Inject()(iaConnector: IaConnector,
+                            lockService: LockService,
                             CSVStreamerConfig: CSVStreamerConfig) {
 
   //todo is this ok
@@ -50,9 +52,11 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
     val csvFile = Files.newDirectoryStream(desSpot.path)
       .filter(_.getFileName.toString.contains(fileName))
       .map(_.toAbsolutePath).head
-    upload(parseFile(csvFile),filePath).onComplete{_ =>
+  upload(parseFile(csvFile),filePath).onComplete{_ =>
       deleteFile(filePath.toString)
-      iaConnector.switch()
+      iaConnector.switch().map { _ =>
+        lockService.release("ia")
+      }
     }
   }
 
