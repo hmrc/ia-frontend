@@ -63,7 +63,7 @@ class LockSpec extends ServiceSpec  {
 
     val throwable = lockService.withLock(completeP()).failed.futureValue
     throwable shouldBe an [LockException]
-    throwable.getMessage shouldBe "The 'ia' lockName is already in use. Have you run recon before it finished?"
+    throwable.getMessage shouldBe "The 'ia' lockName is already in use. Have you run ia before it finished?"
 
     p.isCompleted shouldBe false withClue "Computation should NOT started because lock was not successfully acquired"
     LockResponses.verifyAcquireLock(timeout)
