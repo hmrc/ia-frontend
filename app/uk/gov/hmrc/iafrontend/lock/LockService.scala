@@ -21,14 +21,13 @@ import play.api.Logger
 import play.api.http.Status
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 
 class LockException(msg: String, cause: Throwable) extends Exception(msg, cause)
 
-class LockService @Inject()(http: HttpClient, lockConfig: LockConfig) {
+class LockService @Inject()(http: HttpClient, lockConfig: LockConfig)(implicit ec:ExecutionContext) {
 
   private val lockName = "ia"
 
