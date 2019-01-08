@@ -43,8 +43,8 @@ class IaUploadControllerSpec extends Spec with WithFakeApplication with TestHelp
   val streamer = new CSVStreamer(mockIA,mockLock,CSVStreamerConfig(50,400,1))
   val mockStrideAuth = mock[StrideAuthenticatedAction]
   val testAuthRequest = new StrideAuthenticatedAction(new testAuth,appConfig)
-
-  val controller = new IaUploadController(streamer, mockIA, mockLock, testAuthRequest, messageApi, appConfig)
+  implicit val appConfigImpl = appConfig
+  val controller = new IaUploadController(streamer, mockIA, mockLock, testAuthRequest, messageApi)
   implicit val system = ActorSystem("System")
   implicit val materializer = ActorMaterializer()
   when(mockIA.count()(ArgumentMatchers.any[HeaderCarrier])) thenReturn Future.successful("We have 2 records")

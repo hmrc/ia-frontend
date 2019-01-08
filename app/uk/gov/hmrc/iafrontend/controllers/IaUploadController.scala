@@ -40,8 +40,8 @@ class IaUploadController @Inject()(stream: CSVStreamer,
                                    iaConnector: IaConnector,
                                    lockService: LockService,
                                    strideAuth: StrideAuthenticatedAction,
-                                   val messagesApi: MessagesApi,
-                                   implicit val appConfig: AppConfig) extends FrontendController with I18nSupport {
+                                   val messagesApi: MessagesApi
+                                  )(implicit ec:ExecutionContext, appConfig: AppConfig) extends FrontendController with I18nSupport {
 
   //we need this for the stream bodyParser
   implicit val Hc = HeaderCarrier()
