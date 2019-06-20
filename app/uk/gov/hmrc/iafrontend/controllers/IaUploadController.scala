@@ -23,14 +23,15 @@ import java.io.File
 import java.nio.file.{Path, Paths}
 
 import javax.inject.{Inject, Singleton}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.mvc.MessagesControllerComponents
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.auth.StrideAuthenticatedAction
 import uk.gov.hmrc.iafrontend.config.AppConfig
 import uk.gov.hmrc.iafrontend.connector.IaConnector
 import uk.gov.hmrc.iafrontend.lock.LockService
 import uk.gov.hmrc.iafrontend.streams.CSVStreamer
-import uk.gov.hmrc.iafrontend.views
+import uk.gov.hmrc.iafrontend.views.html.{upload, upload_check}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,14 +41,14 @@ class IaUploadController @Inject()(stream: CSVStreamer,
                                    iaConnector: IaConnector,
                                    lockService: LockService,
                                    strideAuth: StrideAuthenticatedAction,
-                                   val messagesApi: MessagesApi
-                                  )(implicit ec:ExecutionContext, appConfig: AppConfig) extends FrontendController with I18nSupport {
+                                   mcc: MessagesControllerComponents
+                                  )(implicit ec:ExecutionContext, appConfig: AppConfig) extends FrontendController(mcc) with I18nSupport {
 
   //we need this for the stream bodyParser
   implicit val Hc = HeaderCarrier()
 
   def getUploadPage() = strideAuth.async { implicit request =>
-    Future.successful(Ok(views.html.upload()))
+    Future.successful(Ok(upload()))
   }
 
   def submitUploadPage() = strideAuth.async(parse.multipartFormData) { implicit request =>
@@ -65,6 +66,6 @@ class IaUploadController @Inject()(stream: CSVStreamer,
   }
 
   def getUploadCheck() = strideAuth.async { implicit request =>
-    iaConnector.count().map(res => Ok(views.html.upload_check(res)))
+    iaConnector.count().map(res => Ok(upload_check(res)))
   }
 }

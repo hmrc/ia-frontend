@@ -15,17 +15,18 @@
  */
 
 import com.google.inject.{AbstractModule, Provides, Singleton}
-import play.api.Mode.Mode
-import play.api.{Configuration, Environment}
+import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
+
 
 class Module extends AbstractModule {
 
 
   @Provides
   @Singleton
-  def serviceConfig(environment: Environment, configuration: Configuration): ServicesConfig = new ServicesConfig {
+  def serviceConfig(environment: Environment, configuration: Configuration): ServicesConfig = new ServicesConfig(
+    configuration, new RunMode(configuration,environment.mode)) {
     def mode: Mode = environment.mode
     def runModeConfiguration: Configuration = configuration
   }

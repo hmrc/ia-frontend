@@ -17,7 +17,7 @@
 package uk.gov.hmrc.iafrontend.lock
 
 import com.google.inject.Inject
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.duration.Duration
 

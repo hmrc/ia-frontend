@@ -34,7 +34,7 @@ import uk.gov.hmrc.iafrontend.lock.LockService
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class CSVStreamer @Inject()(iaConnector: IaConnector,
                             lockService: LockService,
