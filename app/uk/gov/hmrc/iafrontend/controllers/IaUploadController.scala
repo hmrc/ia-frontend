@@ -31,7 +31,7 @@ import uk.gov.hmrc.iafrontend.config.AppConfig
 import uk.gov.hmrc.iafrontend.connector.IaConnector
 import uk.gov.hmrc.iafrontend.lock.LockService
 import uk.gov.hmrc.iafrontend.streams.CSVStreamer
-import uk.gov.hmrc.iafrontend.views.html.{upload, upload_check}
+import uk.gov.hmrc.iafrontend.views
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -41,8 +41,10 @@ class IaUploadController @Inject()(stream: CSVStreamer,
                                    iaConnector: IaConnector,
                                    lockService: LockService,
                                    strideAuth: StrideAuthenticatedAction,
-                                   mcc: MessagesControllerComponents
-                                  )(implicit ec:ExecutionContext, appConfig: AppConfig) extends FrontendController(mcc) with I18nSupport {
+                                   mcc: MessagesControllerComponents,
+                                   uploadCheck: views.html.upload_check,
+                                   upload: views.html.upload
+                                  )( implicit ec:ExecutionContext, appConfig: AppConfig) extends FrontendController(mcc) with I18nSupport {
 
   //we need this for the stream bodyParser
   implicit val Hc = HeaderCarrier()
@@ -66,6 +68,6 @@ class IaUploadController @Inject()(stream: CSVStreamer,
   }
 
   def getUploadCheck() = strideAuth.async { implicit request =>
-    iaConnector.count().map(res => Ok(upload_check(res)))
+    iaConnector.count().map(res => Ok(uploadCheck(res)))
   }
 }
