@@ -17,6 +17,8 @@
 package uk.gov.hmrc.iafrontend.views
 
 import uk.gov.hmrc.iafrontend.testsupport.{PageElements, ViewSpec}
+import html.main_template
+import uk.gov.hmrc.play.views.html.helpers.FormWithCSRF
 
 
 class UploadPageSpec extends ViewSpec {
@@ -25,8 +27,8 @@ class UploadPageSpec extends ViewSpec {
    "UploadPage" should {
      "display the correct elements " in  new PageElements{
        val upload = new uk.gov.hmrc.iafrontend.views.html.upload(
-         mainTemplate = ???,
-         form = ???
+         mainTemplate = fakeApplication.injector.instanceOf[main_template],
+         fakeApplication.injector.instanceOf[FormWithCSRF]
        )
        val html = upload()(fakeRequest, messages, appConfig)
 
