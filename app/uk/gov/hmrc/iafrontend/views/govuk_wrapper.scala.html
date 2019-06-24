@@ -26,7 +26,8 @@
     uiMainContentHeader: uk.gov.hmrc.play.views.html.layouts.MainContentHeader,
     uiMainContent: uk.gov.hmrc.play.views.html.layouts.MainContent,
     uiFooterLinks: uk.gov.hmrc.play.views.html.layouts.FooterLinks,
-    helperReportAProblemLink: uk.gov.hmrc.play.views.html.helpers.ReportAProblemLink)
+    helperReportAProblemLink: uk.gov.hmrc.play.views.html.helpers.ReportAProblemLink
+)
 
 @(appConfig: AppConfig,
   title: String,
@@ -83,7 +84,7 @@
     }
 }
 
-@getHelpForm = @{uiHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
+@getHelpForm = @{helperReportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
 
 @content = {
     @uiMainContent(

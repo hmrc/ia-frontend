@@ -51,7 +51,15 @@ class IaUploadControllerSpec extends Spec with WithFakeApplication with authMock
   val mockStrideAuth = mock[StrideAuthenticatedAction]
   val testAuthRequest = new StrideAuthenticatedAction(new testAuth,appConfig,fakeApplication.injector.instanceOf[ControllerComponents])
   implicit val appConfigImpl = appConfig
-  val controller = new IaUploadController(streamer, mockIA, mockLock, testAuthRequest, fakeApplication.injector.instanceOf[MessagesControllerComponents])
+  val controller = new IaUploadController(
+    stream = streamer,
+    iaConnector = mockIA,
+    lockService = mockLock,
+    strideAuth = testAuthRequest,
+    mcc = fakeApplication.injector.instanceOf[MessagesControllerComponents],
+    uploadCheck = ???,
+    upload = ???
+  )
   implicit val system = ActorSystem("System")
   implicit val materializer = ActorMaterializer()
   when(mockIA.count()(ArgumentMatchers.any[HeaderCarrier])) thenReturn Future.successful("We have 2 records")
