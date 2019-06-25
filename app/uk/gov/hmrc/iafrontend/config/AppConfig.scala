@@ -18,7 +18,7 @@ package uk.gov.hmrc.iafrontend.config
 
 import javax.inject.{Inject, Singleton}
 import play.api.{Configuration, Environment}
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
 class AppConfig @Inject()(servicesConfig: ServicesConfig,  config: Configuration,environment: Environment)  {
@@ -26,13 +26,19 @@ class AppConfig @Inject()(servicesConfig: ServicesConfig,  config: Configuration
   val runTimeConfig =config
   val runModeEnvironment = environment
   //todo perhaps move most of this to the config class
-  final lazy val defaultOriginStride: String = {
-    config
-      .getString("sosOrigin")
-      .orElse(config.getString("appName"))
-      .getOrElse("undefined")
+  final lazy val defaultOriginStride: String = config.get[String]("sosOrigin") match {
+      case sosOrigin if !sosOrigin.isEmpty => sosOrigin
+      case _ => config.get[String]("appName") match {
+        case appName if !appName.isEmpty => appName
+        case _ => "undefined"
+      }
+    }
+
+  val strideRoles = {
+    val maybeStrideRoles = config.get[Seq[String]]("stride.roles")
+    if (maybeStrideRoles.length == 0)throw new RuntimeException("there are no stride roles in your config!")
+    else maybeStrideRoles
   }
-  val strideRoles = config.getStringSeq("stride.roles").getOrElse(throw new RuntimeException("there are no stride roles in your config!"))
 
 
   private def loadConfig(key: String) = servicesConfig.getString(key)

@@ -19,9 +19,8 @@ package uk.gov.hmrc.iafrontend
 import java.io.File
 import java.nio.file.Files
 
-import akka.stream.scaladsl.{FileIO, Source}
 import akka.util.ByteString
-import play.api.libs.Files.TemporaryFile
+import play.api.libs.Files._
 import play.api.mvc.MultipartFormData
 import play.api.mvc.MultipartFormData.FilePart
 
@@ -40,7 +39,7 @@ object FileTestHelper {
     }
     deleteIfExists(System.getProperty("user.dir") + "/test/uk/gov/hmrc/iafrontend/resources/copy/goodUtr.zip")
     Files.copy(fileTest.toPath, new java.io.File(System.getProperty("user.dir") + "/test/uk/gov/hmrc/iafrontend/resources/copy/goodUtr.zip").toPath)
-    val tempFile = TemporaryFile(new java.io.File(userDirectory + "/test/uk/gov/hmrc/iafrontend/resources/copy/goodUtr.zip"))
+    val tempFile = SingletonTemporaryFileCreator.create(userDirectory + "/test/uk/gov/hmrc/iafrontend/resources/copy/goodUtr.zip")
     val part = FilePart[TemporaryFile](
       key = "fileParam",
       filename = "goodUtr.zip",

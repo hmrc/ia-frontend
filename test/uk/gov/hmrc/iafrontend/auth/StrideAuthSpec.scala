@@ -17,18 +17,24 @@
 package uk.gov.hmrc.iafrontend.auth
 
 import play.api.mvc.Results._
-import play.api.mvc.{Request, Result}
+import play.api.mvc.{ControllerComponents, Request, Result}
+import play.api.test.FakeRequest
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
 import uk.gov.hmrc.auth.core._
-import uk.gov.hmrc.auth.core.retrieve.Retrievals
-import uk.gov.hmrc.iafrontend.{TestHelper, authMock}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+import uk.gov.hmrc.iafrontend.authMock
 import uk.gov.hmrc.auth.core.Enrolment
+import uk.gov.hmrc.iafrontend.config.AppConfig
+import uk.gov.hmrc.iafrontend.testsupport.WithFakeApplication
 
 import scala.concurrent.Future
 
-class StrideAuthSpec extends authMock with TestHelper{
+class StrideAuthSpec extends authMock with WithFakeApplication{
 
-  val testAuthRequest = new StrideAuthenticatedAction(new testAuth,appConfig)
+  val fakeRequestGet = FakeRequest("GET", "/")
+  val testAuthRequest = new StrideAuthenticatedAction(new testAuth,
+    fakeApplication.injector.instanceOf[AppConfig],
+    fakeApplication.injector.instanceOf[ControllerComponents])
   "StrideAuthenticatedAction " should {
 
     "Allow a valid authorized request " in {

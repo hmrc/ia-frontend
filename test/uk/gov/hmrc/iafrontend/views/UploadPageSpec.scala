@@ -17,7 +17,8 @@
 package uk.gov.hmrc.iafrontend.views
 
 import uk.gov.hmrc.iafrontend.testsupport.{PageElements, ViewSpec}
-import uk.gov.hmrc.iafrontend.views.html.upload
+import html.main_template
+import uk.gov.hmrc.play.views.html.helpers.FormWithCSRF
 
 
 class UploadPageSpec extends ViewSpec {
@@ -25,6 +26,10 @@ class UploadPageSpec extends ViewSpec {
 
    "UploadPage" should {
      "display the correct elements " in  new PageElements{
+       val upload = new uk.gov.hmrc.iafrontend.views.html.upload(
+         mainTemplate = fakeApplication.injector.instanceOf[main_template],
+         fakeApplication.injector.instanceOf[FormWithCSRF]
+       )
        val html = upload()(fakeRequest, messages, appConfig)
 
        headerTitle shouldBe "ia-frontend" withClue "the correct banner title"

@@ -20,11 +20,12 @@ import cats.instances.list._
 import cats.instances.option._
 import cats.syntax.traverse._
 import com.google.inject.Inject
+import play.api.libs.json.Reads
 import play.api.{Configuration, Environment, Logger}
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
-import uk.gov.hmrc.auth.core.retrieve.Retrievals
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.{AuthProviders, _}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.config.AppConfig
@@ -35,7 +36,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class StrideAuthenticatedAction @Inject()(
                                            af: AuthorisedFunctions,
-                                           appConfig: AppConfig)(implicit ec: ExecutionContext) extends ActionBuilder[Request] with AuthRedirects{
+                                           appConfig: AppConfig,
+                                           cc:ControllerComponents)(implicit ec: ExecutionContext) extends ActionBuilder[Request,AnyContent] with AuthRedirects{
 
   override def config: Configuration = appConfig.runTimeConfig
 
@@ -45,7 +47,7 @@ class StrideAuthenticatedAction @Inject()(
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
     implicit val r: Request[A] = request
 
-    af.authorised(AuthProviders(PrivilegedApplication)).retrieve(Retrievals.allEnrolments ) { enrolments =>
+    af.authorised(AuthProviders(PrivilegedApplication)).retrieve(Retrievals.allEnrolments) { enrolments =>
       necessaryRoles(enrolments).fold[Future[Result]](Future.successful(Unauthorized("Insufficient roles"))){ _ => block(request) }
     }.recover {
       case _: NoActiveSession =>
@@ -60,4 +62,7 @@ class StrideAuthenticatedAction @Inject()(
   private def necessaryRoles(enrolments: Enrolments):Option[List[Enrolment]] =
     appConfig.strideRoles.toList.map(enrolments.getEnrolment).traverse[Option, Enrolment](identity)
 
+  override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
+
+  override protected def executionContext: ExecutionContext = ec
 }
