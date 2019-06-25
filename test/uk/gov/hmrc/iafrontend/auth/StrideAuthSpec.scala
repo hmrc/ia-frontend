@@ -25,7 +25,7 @@ import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.iafrontend.authMock
 import uk.gov.hmrc.auth.core.Enrolment
 import uk.gov.hmrc.iafrontend.config.AppConfig
-import uk.gov.hmrc.play.test.WithFakeApplication
+import uk.gov.hmrc.iafrontend.testsupport.WithFakeApplication
 
 import scala.concurrent.Future
 

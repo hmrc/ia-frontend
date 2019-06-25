@@ -33,10 +33,9 @@ import uk.gov.hmrc.iafrontend.auth.StrideAuthenticatedAction
 import uk.gov.hmrc.iafrontend.connector.IaConnector
 import uk.gov.hmrc.iafrontend.lock.LockService
 import uk.gov.hmrc.iafrontend.streams.{CSVStreamer, CSVStreamerConfig}
-import uk.gov.hmrc.iafrontend.testsupport.Spec
+import uk.gov.hmrc.iafrontend.testsupport.{Spec, WithFakeApplication}
 import uk.gov.hmrc.iafrontend.{authMock, views}
 import uk.gov.hmrc.iafrontend.config.AppConfig
-import uk.gov.hmrc.play.test.WithFakeApplication
 import uk.gov.hmrc.iafrontend.views.html.upload_check
 import uk.gov.hmrc.iafrontend.views.html.upload
 
