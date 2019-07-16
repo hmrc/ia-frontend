@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.iafrontend.config
+package uk.gov.hmrc.iafrontend.Config
 
-import javax.inject.{Inject, Singleton}
-import play.api.i18n.MessagesApi
-import play.api.mvc.Request
 import play.twirl.api.Html
+import uk.gov.hmrc.iafrontend.config.ErrorHandler
+import uk.gov.hmrc.iafrontend.testsupport.ITSpec
 import uk.gov.hmrc.iafrontend.views
-import uk.gov.hmrc.play.bootstrap.http.FrontendErrorHandler
 
-@Singleton
-class ErrorHandler @Inject() (val messagesApi: MessagesApi, error_template: views.html.error_template, implicit val appConfig: AppConfig)
-  extends FrontendErrorHandler {
-  override def standardErrorTemplate(pageTitle: String, heading: String, message: String)(implicit request: Request[_]): Html =
-    error_template(pageTitle, heading, message)
+class ErrorHandlerSpec extends ITSpec {
+
+  val errorHandler = injector.instanceOf[ErrorHandler]
+  val error_view = injector.instanceOf[views.html.error_template]
+  "ErrorHandler shoud Return valid html" in {
+    val html: Html = errorHandler.standardErrorTemplate("page title", "heading", "message")(fakeRequest)
+    html.contentType shouldBe "text/html"
+    val error = error_view("page title", "heading", "message")(fakeRequest, messages, appConfig)
+    error shouldBe (html)
+  }
+
 }

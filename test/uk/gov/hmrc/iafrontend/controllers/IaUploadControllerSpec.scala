@@ -16,98 +16,65 @@
 
 package uk.gov.hmrc.iafrontend.controllers
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.when
 import play.api.http.Status
-import play.api.libs.json.Reads
-import play.api.mvc.{ControllerComponents, MessagesControllerComponents}
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.auth.core.{AuthProviders, Enrolment, Enrolments}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.iafrontend.auth.StrideAuthenticatedAction
-import uk.gov.hmrc.iafrontend.connector.IaConnector
-import uk.gov.hmrc.iafrontend.lock.LockService
-import uk.gov.hmrc.iafrontend.streams.{CSVStreamer, CSVStreamerConfig}
-import uk.gov.hmrc.iafrontend.testsupport.{Spec, WithFakeApplication}
-import uk.gov.hmrc.iafrontend.{authMock, views}
-import uk.gov.hmrc.iafrontend.config.AppConfig
-import uk.gov.hmrc.iafrontend.views.html.upload_check
-import uk.gov.hmrc.iafrontend.views.html.upload
+import play.api.libs.Files.TemporaryFile
+import play.api.mvc._
+import uk.gov.hmrc.iafrontend.authMock
+import uk.gov.hmrc.iafrontend.testsupport.{ITSpec, ResourceReader, TestConnector, WireMockResponses}
 
-import scala.concurrent.Future
+class IaUploadControllerSpec extends ITSpec with authMock {
 
-class IaUploadControllerSpec extends Spec with WithFakeApplication with authMock{
+  val testConnector = fakeApplication().injector.instanceOf[TestConnector]
 
-  val appConfig = fakeApplication.injector.instanceOf[AppConfig]
-  val fakeRequestGet = FakeRequest("GET", "/")
-
-  val mockIA = mock[IaConnector]
-  val mockLock = mock[LockService]
-  val streamer = new CSVStreamer(mockIA,mockLock,CSVStreamerConfig(50,400,1))
-  val mockStrideAuth = mock[StrideAuthenticatedAction]
-  val testAuthRequest = new StrideAuthenticatedAction(new testAuth,appConfig,fakeApplication.injector.instanceOf[ControllerComponents])
-  implicit val appConfigImpl = appConfig
-  val controller = new IaUploadController(
-    stream = streamer,
-    iaConnector = mockIA,
-    lockService = mockLock,
-    strideAuth = testAuthRequest,
-    mcc = fakeApplication.injector.instanceOf[MessagesControllerComponents],
-    uploadCheck = fakeApplication.injector.instanceOf[upload_check],
-    upload = fakeApplication.injector.instanceOf[upload]
-  )
-  implicit val system = ActorSystem("System")
-  implicit val materializer = ActorMaterializer()
-  when(mockIA.count()(ArgumentMatchers.any[HeaderCarrier])) thenReturn Future.successful("We have 2 records")
-  "GET /upload " should {
-    "return 200" in {
-      mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
-      val result = controller.getUploadPage()(FakeRequest("GET", "/")).futureValue
-      status(result) shouldBe Status.OK
-    }
-
-    "return HTML" in {
-      mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
-      val result = controller.getUploadPage()(FakeRequest("GET", "/"))
-      contentType(result) shouldBe Some("text/html")
-      charset(result) shouldBe Some("utf-8")
-    }
-
+  "Get /upload should return 200" in {
+    WireMockResponses.authOk
+    val result = testConnector.getUpload.futureValue
+    result.status shouldBe Status.OK
   }
-  "GET /upload/check " should {
-    "return 200" in {
-      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
-      val result = controller.getUploadCheck()(FakeRequest("GET", "/")).futureValue
-      status(result) shouldBe Status.OK
-    }
 
-    "return HTML" in {
-      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
-      val result = controller.getUploadCheck()(FakeRequest("GET", "/"))
-      contentType(result) shouldBe Some("text/html")
-      charset(result) shouldBe Some("utf-8")
+  "return HTML getUploadPage" in {
+    WireMockResponses.authOk
+    val result = testConnector.getUpload.futureValue
+    result.header("Content-Type") match {
+      case None    => "content-type" shouldBe "does not contain utf-8"
+      case Some(x) => x should include("UTF-8"); x should include("""text/html""")
     }
-    "call the ia count in" in {
-      mockAuthorise(AuthProviders(PrivilegedApplication), Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
-      val result = controller.getUploadCheck()(FakeRequest("GET", "/"))
-    }
-
   }
-//todo write tests
-   /*"Post /upload " should {
-     "return 200" in {
-       mockAuthorise(AuthProviders(PrivilegedApplication),Retrievals.allEnrolments)(Future.successful(Enrolments(Set(Enrolment("Insolvency_Analytics_User")))))
-       when(mockIA.drop()( ArgumentMatchers.any[HeaderCarrier])).thenReturn(Future.successful(()))
 
-       val result = controller.submitUploadPage()(fakeRequestPostForm.withMultipartFormDataBody(getMockFileZipedCsvFile)).run()
-       status(result) shouldBe Status.OK
-     }
-   }
-*/
+  "GET /upload/check should return 200" in {
+    WireMockResponses.count
+    WireMockResponses.authOk
+    val result = testConnector.getUploadCheck.futureValue
+    result.status shouldBe Status.OK
+  }
+
+  "return HTML getUploadCheck" in {
+    WireMockResponses.count
+    WireMockResponses.authOk
+    val result = testConnector.getUploadCheck.futureValue
+    result.header("Content-Type") match {
+      case None    => "content-type" shouldBe "does not contain utf-8"
+      case Some(x) => x should include("UTF-8"); x should include("""text/html""")
+    }
+  }
+
+  "call the upload in " in {
+    WireMockResponses.acquireLock
+    WireMockResponses.releaseLock
+    WireMockResponses.sendUtrs
+    WireMockResponses.count
+    WireMockResponses.switch
+    WireMockResponses.authOk
+
+    val fileBody = ResourceReader.getMultiPartFromResource("/source.zip", "/tmp/source.zip", "source.zip")
+    implicit val request = mock[Request[MultipartFormData[TemporaryFile]]]
+    when(request.body) thenReturn fileBody
+
+    val controller = fakeApplication().injector.instanceOf[IaUploadController]
+    val result: Result = controller.doUpload().futureValue
+    status(result) shouldBe Status.SEE_OTHER
+  }
+
 }
 

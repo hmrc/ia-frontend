@@ -16,22 +16,19 @@
 
 package uk.gov.hmrc.iafrontend.testsupport
 
-import org.scalatest._
-import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
-import org.scalatest.mockito.MockitoSugar
+import javax.inject.{Inject, Singleton}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
-trait Spec extends Matchers
-  with DiagrammedAssertions
-  with TryValues
-  with EitherValues
-  with OptionValues
-  with AppendedClues
-  with ScalaFutures
-  with StreamlinedXml
-  with Inside
-  with Eventually
-  with MockitoSugar
-  with UnitSpec
-  with IntegrationPatience{
-  implicit lazy val ec = scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
+
+@Singleton
+class TestConnector @Inject() (httpClient: HttpClient)(implicit executionContext: ExecutionContext) {
+
+  val port = 19001
+
+  def getUpload(implicit hc: HeaderCarrier): Future[HttpResponse] = httpClient.GET(s"http://localhost:$port/ia-frontend/upload")
+
+  def getUploadCheck(implicit hc: HeaderCarrier): Future[HttpResponse] = httpClient.GET(s"http://localhost:$port/ia-frontend/upload/check")
+
 }
