@@ -24,12 +24,12 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-
 class LockException(msg: String, cause: Throwable) extends Exception(msg, cause)
 
-class LockService @Inject()(http: HttpClient, lockConfig: LockConfig)(implicit ec:ExecutionContext) {
+class LockService @Inject() (http: HttpClient, lockConfig: LockConfig)(implicit ec: ExecutionContext) {
 
   private val lockName = "ia"
+  private val baseUrl = lockConfig.baseUrl
 
   def withLock[A](f: => Future[A])(implicit hc: HeaderCarrier): Future[A] = {
     val result = for {
@@ -42,7 +42,7 @@ class LockService @Inject()(http: HttpClient, lockConfig: LockConfig)(implicit e
     result
   }
 
-   def acquire(implicit hc: HeaderCarrier): Future[Unit] = {
+  def acquire(implicit hc: HeaderCarrier): Future[Unit] = {
     val timeOut = lockConfig.timeout
     val url = s"$baseUrl/locks/$lockName?timeout=${timeOut.toSeconds}"
     val logMessage = s"Acquiring lock [lockName=$lockName] [timeOut=$timeOut] [url=$url]"
@@ -76,6 +76,4 @@ class LockService @Inject()(http: HttpClient, lockConfig: LockConfig)(implicit e
           throw new LockException(errMessage, ex)
       }
   }
-
-  private val baseUrl = lockConfig.baseUrl
 }

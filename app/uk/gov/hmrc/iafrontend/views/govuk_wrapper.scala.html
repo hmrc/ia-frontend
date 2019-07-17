@@ -80,7 +80,7 @@
 
 @mainContentHeader = {
     @if(contentHeader.isDefined) {
-        @uiMainContentHeader(contentHeader = contentHeader.get)
+        @uiMainContentHeader(contentHeader = contentHeader.getOrElse(Html("")))
     }
 }
 

@@ -14,31 +14,27 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.iafrontend.lock
+package uk.gov.hmrc.iafrontend.testsupport
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import org.scalatest.concurrent.{AbstractPatienceConfiguration, Eventually}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
 
 trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
-  self: Suite with AbstractPatienceConfiguration with Eventually =>
-  import WireMockSupport._
+  self: Suite =>
 
-  implicit val wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(port))
+  implicit val wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(WireMockSupport.port))
 
-  WireMock.configureFor(port)
+  WireMock.configureFor(WireMockSupport.port)
+
+  override def beforeEach() = WireMock.reset()
 
   override protected def beforeAll(): Unit = wireMockServer.start()
 
   override protected def afterAll(): Unit = wireMockServer.stop()
-
-  override def beforeEach()= WireMock.reset()
-
 }
 
 object WireMockSupport {
-  val port = 11111
-  val host = "localhost"
+  val port: Int = 11111
 }

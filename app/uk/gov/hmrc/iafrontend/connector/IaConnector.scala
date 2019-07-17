@@ -25,19 +25,16 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
-class IaConnector @Inject()(
-                             http: HttpClient,
-                             ia: IaConfig) {
+class IaConnector @Inject() (
+    http: HttpClient,
+    ia:   IaConfig) {
   private val urlUpload = s"${ia.baseUrl}/ia/upload"
   private val urlSwitch = s"${ia.baseUrl}/ia/switch"
   private val urlCount = s"${ia.baseUrl}/ia/count"
 
   def sendUtrs(batchUtrs: List[GreenUtr])(implicit hc: HeaderCarrier): Future[Int] = {
-    http.POST(urlUpload, batchUtrs).map(result => result.status match {
-      case 200 => result.body.toInt
-      case _ => throw new Exception(s"batch update error for url ${urlUpload}  utrs list ${batchUtrs} bad end retuned ${result}")
-    })
+    http.POST(urlUpload, batchUtrs).map(result =>
+      result.body.toInt)
   }
 
   def switch()(implicit hc: HeaderCarrier): Future[Unit] = {

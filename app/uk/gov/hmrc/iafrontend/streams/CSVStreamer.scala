@@ -31,18 +31,17 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.connector.IaConnector
 import uk.gov.hmrc.iafrontend.domain.GreenUtr
 import uk.gov.hmrc.iafrontend.lock.LockService
-
-import scala.collection.JavaConversions._
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class CSVStreamer @Inject()(iaConnector: IaConnector,
-                            lockService: LockService,
-                            CSVStreamerConfig: CSVStreamerConfig) {
+class CSVStreamer @Inject() (iaConnector:       IaConnector,
+                             lockService:       LockService,
+                             CSVStreamerConfig: CSVStreamerConfig) {
 
   //todo is this ok
-  implicit val system = ActorSystem("System")
-  implicit val materializer = ActorMaterializer()
+  implicit val system: ActorSystem = ActorSystem("System")
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   def processFile(filePath: Path)(implicit headerCarrier: HeaderCarrier): Unit = {
 
@@ -50,9 +49,10 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
     val fileName = filePath.toString.replaceAll(".zip", "")
     filePath.unzipTo(destination = desSpot)
     val csvFile = Files.newDirectoryStream(desSpot.path)
-      .filter(_.getFileName.toString.contains(fileName))
-      .map(_.toAbsolutePath).head
-  upload(parseFile(csvFile),filePath).onComplete{_ =>
+      .asScala.filter(_.getFileName.toString.contains(fileName))
+      .map(_.toAbsolutePath).headOption
+
+    upload(parseFile(csvFile.getOrElse(throw new RuntimeException(s"Problem with file ${fileName}"))), filePath).onComplete { _ =>
       deleteFile(filePath.toString)
       iaConnector.switch().map { _ =>
         lockService.release("ia")
@@ -60,21 +60,17 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
     }
   }
 
-  private def upload(dataSource: Source[Int, _],filePath:Path)(implicit headerCarrier: HeaderCarrier) = {
+  @SuppressWarnings(Array("org.wartremover.warts.Any"))
+  private def upload(dataSource: Source[Int, _], filePath: Path)(implicit headerCarrier: HeaderCarrier) = {
     Logger.info("Beginning parsing of csv file")
-      val sink = Sink.fold[Int, Int](0)((total, batch) =>total + batch)
-      dataSource.recover{
-        case e => throw e
-  }.toMat(sink)(Keep.right).run()
+    val sink = Sink.fold[Int, Int](0)((total, batch) => total + batch)
+    dataSource.recover {
+      case e => throw e
+    }.toMat(sink)(Keep.right).run()
   }
 
-  private def cleanByte(byteString: ByteString): String = byteString.utf8String.replaceAll("[^\\d.]", "").take(10)
-
-  private def sendBatch(batchString: Seq[String])(implicit headerCarrier: HeaderCarrier) = {
-    Logger.info("Sending batch")
-    iaConnector.sendUtrs(batchString.map(line => {
-      GreenUtr(line)
-    }).toList)
+  def parseFile(file: Path)(implicit ex: ExecutionContext, hc: HeaderCarrier): Source[Int, _] = {
+    FileIO.fromPath(file).via(sendBatchesFlow)
   }
 
   def sendBatchesFlow()(implicit hc: HeaderCarrier): Flow[ByteString, Int, NotUsed] =
@@ -84,9 +80,13 @@ class CSVStreamer @Inject()(iaConnector: IaConnector,
           .map(cleanByte).grouped(CSVStreamerConfig.batchSize)
           .mapAsync(CSVStreamerConfig.parallelism)(sendBatch))
 
+  private def cleanByte(byteString: ByteString): String = byteString.utf8String.replaceAll("[^\\d.]", "").take(10)
 
-  def parseFile(file: Path)(implicit ex: ExecutionContext, hc: HeaderCarrier): Source[Int, _] = {
-    FileIO.fromPath(file).via(sendBatchesFlow)
+  private def sendBatch(batchString: Seq[String])(implicit headerCarrier: HeaderCarrier) = {
+    Logger.info("Sending batch")
+    iaConnector.sendUtrs(batchString.map(line => {
+      GreenUtr(line)
+    }).toList)
   }
 
   private def deleteFile(path: String) = {

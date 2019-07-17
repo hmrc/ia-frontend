@@ -21,34 +21,30 @@ import play.api.{Configuration, Environment}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
-class AppConfig @Inject()(servicesConfig: ServicesConfig,  config: Configuration,environment: Environment)  {
+class AppConfig @Inject() (servicesConfig: ServicesConfig, config: Configuration, environment: Environment) {
 
-  val runTimeConfig =config
-  val runModeEnvironment = environment
   //todo perhaps move most of this to the config class
   final lazy val defaultOriginStride: String = config.get[String]("sosOrigin") match {
-      case sosOrigin if !sosOrigin.isEmpty => sosOrigin
-      case _ => config.get[String]("appName") match {
-        case appName if !appName.isEmpty => appName
-        case _ => "undefined"
-      }
+    case sosOrigin if !sosOrigin.isEmpty => sosOrigin
+    case _ => config.get[String]("appName") match {
+      case appName if !appName.isEmpty => appName
+      case _                           => "undefined"
     }
-
-  val strideRoles = {
-    val maybeStrideRoles = config.get[Seq[String]]("stride.roles")
-    if (maybeStrideRoles.length == 0)throw new RuntimeException("there are no stride roles in your config!")
-    else maybeStrideRoles
   }
-
-
-  private def loadConfig(key: String) = servicesConfig.getString(key)
-  private val contactHost = servicesConfig.getString("contact-frontend.host")
-  private val contactFormServiceIdentifier = "MyService"
-
   lazy val assetsPrefix = loadConfig(s"assets.url") + loadConfig(s"assets.version")
   lazy val analyticsToken = loadConfig(s"google-analytics.token")
   lazy val analyticsHost = loadConfig(s"google-analytics.host")
-
   lazy val reportAProblemPartialUrl = s"$contactHost/contact/problem_reports_ajax?service=$contactFormServiceIdentifier"
   lazy val reportAProblemNonJSUrl = s"$contactHost/contact/problem_reports_nonjs?service=$contactFormServiceIdentifier"
+  val runTimeConfig = config
+  val runModeEnvironment = environment
+  val strideRoles = {
+    val maybeStrideRoles = config.get[Seq[String]]("stride.roles")
+    if (maybeStrideRoles.length == 0) throw new RuntimeException("there are no stride roles in your config!")
+    else maybeStrideRoles
+  }
+  private val contactHost = servicesConfig.getString("contact-frontend.host")
+  private val contactFormServiceIdentifier = "MyService"
+
+  private def loadConfig(key: String) = servicesConfig.getString(key)
 }

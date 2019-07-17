@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.iafrontend.lock
+package uk.gov.hmrc.iafrontend.testsupport
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import play.api.libs.json.Json
 
-
-object LockResponses {
+object WireMockResponses {
 
   private val locksUrlPattern: UrlPathPattern = urlPathEqualTo("/locks/ia")
   private val acquireMB: MappingBuilder =
@@ -63,4 +63,40 @@ object LockResponses {
   }
 
   def verifyReleaseLock() = verify(1, deleteRequestedFor(locksUrlPattern))
+
+  def sendUtrs(): StubMapping = {
+    stubFor(post(urlEqualTo(s"/ia/upload")).willReturn(
+      aResponse()
+        .withStatus(200)
+        .withBody("2")
+    ))
+  }
+
+  def sendUtrsFail(): StubMapping = {
+    stubFor(post(urlEqualTo(s"/ia/upload")).willReturn(
+      aResponse()
+        .withStatus(400)
+    ))
+  }
+
+  def switch(): StubMapping = {
+    stubFor(post(urlEqualTo(s"/ia/switch")).willReturn(
+      aResponse()
+        .withStatus(200)
+    ))
+  }
+
+  def count(): StubMapping = {
+    stubFor(get(urlEqualTo(s"/ia/count")).willReturn(
+      aResponse()
+        .withStatus(200)
+        .withBody("6")
+    ))
+  }
+
+  def authOk(): StubMapping = {
+    stubFor(post(urlEqualTo(s"/auth/authorise")).willReturn(
+      ok("""{"individualEnrolments":{"sa":"2222222222", "nino": "AA000003D"}, "allEnrolments" : [{"key":"Insolvency_Analytics_User", "identifiers": [{"key" : "UTR" , "value": "2222222226"}], "state": "Activated"}]}""")))
+  }
+
 }
