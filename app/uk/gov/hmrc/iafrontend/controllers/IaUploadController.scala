@@ -16,15 +16,13 @@
 
 package uk.gov.hmrc.iafrontend.controllers
 
-
-
-
 import java.io.File
 import java.nio.file.{Path, Paths}
 
 import javax.inject.{Inject, Singleton}
 import play.api.i18n.I18nSupport
-import play.api.mvc.MessagesControllerComponents
+import play.api.libs.Files.TemporaryFile
+import play.api.mvc.{MessagesControllerComponents, MultipartFormData, Request}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.iafrontend.auth.StrideAuthenticatedAction
 import uk.gov.hmrc.iafrontend.config.AppConfig
@@ -37,23 +35,27 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class IaUploadController @Inject()(stream: CSVStreamer,
-                                   iaConnector: IaConnector,
-                                   lockService: LockService,
-                                   strideAuth: StrideAuthenticatedAction,
-                                   mcc: MessagesControllerComponents,
-                                   uploadCheck: views.html.upload_check,
-                                   upload: views.html.upload
-                                  )( implicit ec:ExecutionContext, appConfig: AppConfig) extends FrontendController(mcc) with I18nSupport {
+class IaUploadController @Inject() (stream:      CSVStreamer,
+                                    iaConnector: IaConnector,
+                                    lockService: LockService,
+                                    strideAuth:  StrideAuthenticatedAction,
+                                    mcc:         MessagesControllerComponents,
+                                    uploadCheck: views.html.upload_check,
+                                    upload:      views.html.upload
+)(implicit ec: ExecutionContext, appConfig: AppConfig) extends FrontendController(mcc) with I18nSupport {
 
   //we need this for the stream bodyParser
-  implicit val Hc = HeaderCarrier()
+  implicit val Hc: HeaderCarrier = HeaderCarrier()
 
   def getUploadPage() = strideAuth.async { implicit request =>
     Future.successful(Ok(upload()))
   }
 
   def submitUploadPage() = strideAuth.async(parse.multipartFormData) { implicit request =>
+    doUpload()(request)
+  }
+
+  def doUpload()(implicit request: Request[MultipartFormData[TemporaryFile]]) = {
     request.body.file("file").map { ZippedFile =>
       //todo might want to delete these in case jvm fills up
       val filename = Paths.get(ZippedFile.filename).getFileName
@@ -63,8 +65,9 @@ class IaUploadController @Inject()(stream: CSVStreamer,
       Future.successful(Ok("Upload failed, please try again"))
     )
   }
- private def checkLockAndStream(filename:Path)= {
-    lockService.acquire(Hc).map{_ =>stream.processFile(filename)}
+
+  private def checkLockAndStream(filename: Path) = {
+    lockService.acquire(Hc).map { _ => stream.processFile(filename) }
   }
 
   def getUploadCheck() = strideAuth.async { implicit request =>

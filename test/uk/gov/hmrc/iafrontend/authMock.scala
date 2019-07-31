@@ -22,26 +22,28 @@ import uk.gov.hmrc.auth.core.authorise.{EmptyPredicate, Predicate}
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.iafrontend.testsupport.Spec
+import uk.gov.hmrc.iafrontend.testsupport.RichMatchers
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait authMock extends Spec{
+trait authMock extends RichMatchers {
 
   val mockAuth = mock[AuthConnector]
-  def mockAuthorise[T](predicate: Predicate = EmptyPredicate,
+
+  def mockAuthorise[T](predicate:  Predicate    = EmptyPredicate,
                        retrievals: Retrieval[T]
-                      )(response: Future[T]): Unit = {
+  )(response: Future[T]): Unit = {
     when(
       mockAuth.authorise(
         ArgumentMatchers.eq(predicate),
         ArgumentMatchers.eq(retrievals)
       )(
-        ArgumentMatchers.any[HeaderCarrier],
-        ArgumentMatchers.any[ExecutionContext])
+          ArgumentMatchers.any[HeaderCarrier],
+          ArgumentMatchers.any[ExecutionContext])
     ) thenReturn response
     ()
   }
+
   class testAuth extends AuthorisedFunctions {
     override def authConnector: AuthConnector = mockAuth
   }

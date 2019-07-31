@@ -18,8 +18,8 @@
 
 @this(
     govUkWrapper: uk.gov.hmrc.iafrontend.views.html.govuk_wrapper,
-    sidebar1: uk.gov.hmrc.play.views.html.layouts.Sidebar = null,
-    article1: uk.gov.hmrc.play.views.html.layouts.Article = null
+    uiSidebar: uk.gov.hmrc.play.views.html.layouts.Sidebar,
+    article1: uk.gov.hmrc.play.views.html.layouts.Article
 )
 
 @(title: String,
@@ -35,9 +35,9 @@
 @serviceInfoContent = {}
 
 @sidebar = {
-    @if(sidebarLinks.isDefined) {
-        @sidebar1(sidebarLinks.get, Some("sidebar"))
-    }
+@if(sidebarLinks.isDefined) {
+@uiSidebar(sidebarLinks.getOrElse(Html("")), Some("sidebar"))
+}
 }
 
 

@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.iafrontend.domain
 
-import play.api.libs.json.Json
-case class GreenUtr(utr: String){
-  if(utr.length != 10)throw new RuntimeException("Bad utr " + utr)
+import play.api.libs.json.{Json, OFormat}
+
+case class GreenUtr(utr: String) {
+  if (utr.length != 10) throw new RuntimeException("Bad utr " + utr)
 }
 
-object GreenUtr{
-  implicit val utrFormat = Json.format[GreenUtr]
+object GreenUtr {
+  implicit val utrFormat: OFormat[GreenUtr] = Json.format[GreenUtr]
 }

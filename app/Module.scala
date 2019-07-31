@@ -19,24 +19,22 @@ import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
 
-
 class Module extends AbstractModule {
-
 
   @Provides
   @Singleton
   def serviceConfig(environment: Environment, configuration: Configuration): ServicesConfig = new ServicesConfig(
-    configuration, new RunMode(configuration,environment.mode)) {
+    configuration, new RunMode(configuration, environment.mode)) {
     def mode: Mode = environment.mode
+
     def runModeConfiguration: Configuration = configuration
   }
+
   @Provides
   @Singleton
   def authorisedFunctions(ac: AuthConnector): AuthorisedFunctions = new AuthorisedFunctions {
     override def authConnector: AuthConnector = ac
   }
 
-  override def configure(): Unit = (
-
-  )
+  override def configure(): Unit = ()
 }

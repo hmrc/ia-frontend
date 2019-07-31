@@ -14,50 +14,46 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.iafrontend.lock
-
+package uk.gov.hmrc.iafrontend.testsupport
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.verification.LoggedRequest
 import org.scalatest._
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
+import org.scalatest.mockito.MockitoSugar
 import play.api.libs.json.{JsValue, Json}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
-
 
 trait RichMatchers
   extends Matchers
-    with DiagrammedAssertions
-    with TryValues
-    with EitherValues
-    with OptionValues
-    with AppendedClues
-    with ScalaFutures
-    with StreamlinedXml
-    with Inside
-    with Eventually
-    with IntegrationPatience {
-
-  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  with DiagrammedAssertions
+  with TryValues
+  with EitherValues
+  with OptionValues
+  with AppendedClues
+  with ScalaFutures
+  with StreamlinedXml
+  with Inside
+  with Eventually
+  with IntegrationPatience
+  with MockitoSugar {
 
   implicit def toLoggedRequestOps(lr: LoggedRequest) = new {
     def getBodyAsJson: JsValue = Json.parse(lr.getBodyAsString)
   }
 
+  def assertThereWasOnlyOneReqeust() = getRecordedRequest()
+
   /**
-    * Returns recorded by WireMock request.
-    * Asserts there was only one request made to wire mock.
-    * Use it in Connector unit tests.
-    */
+   * Returns recorded by WireMock request.
+   * Asserts there was only one request made to wire mock.
+   * Use it in Connector unit tests.
+   */
   def getRecordedRequest(): LoggedRequest = {
     val allRecordedRequests = WireMock.getAllServeEvents().asScala.map(_.getRequest)
     allRecordedRequests should have length 1 withClue "there suppose to be only one request recorded"
     allRecordedRequests.head
   }
 
-  def assertThereWasOnlyOneReqeust() = getRecordedRequest()
-
 }
-
