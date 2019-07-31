@@ -60,7 +60,7 @@ class IaUploadController @Inject()(stream: CSVStreamer,
       ZippedFile.ref.moveTo(new File(s"$filename"), replace = true)
       checkLockAndStream(filename).map(_ => Redirect(routes.IaUploadController.getUploadCheck()))
     }.getOrElse(
-      Future.successful(Ok("Upload failed please try again"))
+      Future.successful(Ok("Upload failed, please try again"))
     )
   }
  private def checkLockAndStream(filename:Path)= {
