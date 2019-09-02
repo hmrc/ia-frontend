@@ -39,7 +39,6 @@ class CSVStreamer @Inject() (iaConnector:       IaConnector,
                              lockService:       LockService,
                              CSVStreamerConfig: CSVStreamerConfig) {
 
-  //todo is this ok
   implicit val system: ActorSystem = ActorSystem("System")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
