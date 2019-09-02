@@ -19,7 +19,6 @@ package uk.gov.hmrc.iafrontend.streams
 import javax.inject.Inject
 import play.api.Configuration
 
-//todo find out a good number for parallelism
 case class CSVStreamerConfig(batchSize: Int, frameSize: Int, parallelism: Int = Runtime.getRuntime.availableProcessors - 1) {
   @Inject
   def this(configuration: Configuration) = {

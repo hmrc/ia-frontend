@@ -56,10 +56,9 @@ class IaUploadController @Inject() (stream:      CSVStreamer,
   }
 
   def doUpload()(implicit request: Request[MultipartFormData[TemporaryFile]]) = {
-    request.body.file("file").map { ZippedFile =>
-      //todo might want to delete these in case jvm fills up
-      val filename = Paths.get(ZippedFile.filename).getFileName
-      ZippedFile.ref.moveTo(new File(s"$filename"), replace = true)
+    request.body.file("file").map { zippedFile =>
+      val filename = Paths.get(zippedFile.filename).getFileName
+      zippedFile.ref.moveTo(new File(s"$filename"), replace = true)
       checkLockAndStream(filename).map(_ => Redirect(routes.IaUploadController.getUploadCheck()))
     }.getOrElse(
       Future.successful(Ok("Upload failed, please try again"))

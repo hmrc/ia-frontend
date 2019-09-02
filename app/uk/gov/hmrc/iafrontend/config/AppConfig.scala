@@ -23,14 +23,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 @Singleton
 class AppConfig @Inject() (servicesConfig: ServicesConfig, config: Configuration, environment: Environment) {
 
-  //todo perhaps move most of this to the config class
-  final lazy val defaultOriginStride: String = config.get[String]("sosOrigin") match {
-    case sosOrigin if !sosOrigin.isEmpty => sosOrigin
-    case _ => config.get[String]("appName") match {
-      case appName if !appName.isEmpty => appName
-      case _                           => "undefined"
-    }
-  }
+  final lazy val defaultOriginStride: String = config.get[String]("sosOrigin")
   lazy val assetsPrefix = loadConfig(s"assets.url") + loadConfig(s"assets.version")
   lazy val analyticsToken = loadConfig(s"google-analytics.token")
   lazy val analyticsHost = loadConfig(s"google-analytics.host")
